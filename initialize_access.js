@@ -11,7 +11,7 @@ if (!localStorage.getItem("staff_id")) {
     redirect: "follow"
   };
   
-  fetch("https://example.com/api/accounts", requestOptions)
+  fetch("https://pike13.com/api/v2/account", requestOptions)
     .then(response => response.json())
     .then(result => {
       // Extract the id from the first account
