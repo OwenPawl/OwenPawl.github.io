@@ -1,5 +1,5 @@
 if (!localStorage.getItem("access_token") && !window.location.hash.includes("access_token")) {
-  window.open(`https://pike13.com/oauth/authorize?client_id=ixG6UsN5JaLPYFgwjhTAtmdg8UNU7IZYK2lOxTo3&response_type=token&redirect_uri=${window.location.href}`);
+  window.location.href = `https://pike13.com/oauth/authorize?client_id=ixG6UsN5JaLPYFgwjhTAtmdg8UNU7IZYK2lOxTo3&response_type=token&redirect_uri=${window.location.href}`;
   };
 if (window.location.hash.includes("access_token")) {
   localStorage.setItem("access_token", window.location.hash.slice(14,54));
