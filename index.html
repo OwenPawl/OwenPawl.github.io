@@ -3,7 +3,18 @@
 <head>
   <title>Show URL</title>
 </head>
+  <script>
+function setup_api(){
+  
+  if (!localStorage.getItem("api_key") && !new URLSearchParams(window.location.search).get('code')) {
+    window.open(`https://pike13.com/oauth/authorize?client_id=ixG6UsN5JaLPYFgwjhTAtmdg8UNU7IZYK2lOxTo3&response_type=code&redirect_uri=${window.location.href}`);
+    };
+  if (!localStorage.getItem("api_key") && new URLSearchParams(window.location.search).get('code')) {
+  };
+};
+  </script>
+</head>
 <body>
-  <button onclick="alert(window.location.href)">Show URL</button>
+  <button onclick="setup_api()">Authorize</button>
 </body>
 </html>
