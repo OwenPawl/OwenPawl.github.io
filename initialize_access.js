@@ -7,7 +7,7 @@ if (window.location.hash.includes("access_token")) {
 if (!localStorage.getItem("staff_id")) {
   const requestOptions = {
     method: "GET",
-    headers: {Authorization: `Bearer ${localStorage.getItem("access_token")}`},
+    headers: {"Authorization": `Bearer ${localStorage.getItem("access_token")}`},
     redirect: "follow"
   };
   
