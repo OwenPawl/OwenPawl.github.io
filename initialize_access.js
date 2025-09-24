@@ -4,7 +4,7 @@ if (!localStorage.getItem("access_token") && !window.location.hash.includes("acc
 if (window.location.hash.includes("access_token")) {
   localStorage.setItem("access_token", window.location.hash.slice(14,54));
 };
-if (!localStorage.getItem("staff_id")) {
+if (!localStorage.getItem("staff_name")) {
   const requestOptions = {
     method: "GET",
     headers: {"Authorization": `Bearer ${localStorage.getItem("access_token")}`},
@@ -15,7 +15,7 @@ if (!localStorage.getItem("staff_id")) {
     .then(response => response.json())
     .then(result => {
       // Extract the id from the first account
-      localStorage.setItem("staff_id", result.accounts?.[0]?.id);
+      localStorage.setItem("staff_name", result.accounts?.[0]?.first_name+" "+result.accounts?.[0]?.last_name);
     })
     .catch(error => console.error("Error:", error));
 };
