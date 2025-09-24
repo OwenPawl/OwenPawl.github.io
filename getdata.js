@@ -1,4 +1,5 @@
 document.getElementById("dateInput").addEventListener("change", (event) => {
+  console.log("dateInput changed, value:", event.target.value)
   dateChanged(event.target.value);
 });
 function dateChanged(date) {
