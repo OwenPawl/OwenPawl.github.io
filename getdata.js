@@ -9,7 +9,7 @@ async function getevents() {
         headers: {"Authorization": "Bearer kZEbOpElCispz8mFkeoTsVGVCvSP23mZG82G7eeN","Content-Type":"application/json"},
         redirect: "follow"
       };
-    const response = await fetch(`https://mcdonaldswimschool.pike13.com/api/v2/desk/staff_members/${localStorage.get("staff_id")}/event_occurrences.json?&from=${document.getElementById("dateInput").value}T07:00:00Z`,requestoptions);
+    const response = await fetch(`https://mcdonaldswimschool.pike13.com/api/v2/desk/staff_members/${localStorage.getItem("staff_id")}/event_occurrences.json?&from=${document.getElementById("dateInput").value}T07:00:00Z`,requestOptions);
     if (!response.ok) {
       throw new Error(`HTTP error! Status: ${response.status}`);
     }
@@ -36,7 +36,7 @@ async function getevents() {
         body: JSON.stringify({"data":{"type":"queries","attributes":{"page":{},"fields":["person_id","custom_field_180098","first_visit_date","birthdate"],"filter":${["or",result.map(item => ["eq", "person_id", [item[0].toString()]])]}}}),
         redirect: "follow"
       };
-    const response = await fetch(`https://mcdonaldswimschool.pike13.com/desk/api/v3/reports/clients/queries`,requestoptions);
+    const response = await fetch(`https://mcdonaldswimschool.pike13.com/desk/api/v3/reports/clients/queries`,requestOptions);
     if (!response.ok) {
       throw new Error(`HTTP error! Status: ${response.status}`);
     }
