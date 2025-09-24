@@ -2,8 +2,10 @@ document.getElementById("dateInput").addEventListener("change", (event) => {
   console.log("dateInput changed, value:", event.target.value)
   dateChanged(event.target.value);
 });
-document.getElementById("dateInput").value=new Date().toISOString().split("T")[0];
-dateInput.dispatchEvent(new Event("change"));
+if (!document.getElementById("dateInput").value) {
+  document.getElementById("dateInput").value=new Date().toISOString().split("T")[0];
+  dateChanged(document.getElementById("dateInput").value);
+};
 function dateChanged(date) {
   const requestOptions = {
     method: "POST",
