@@ -1,4 +1,6 @@
-// Load a page into the content div and hide navigation
+document.addEventListener("DOMContentLoaded", () => {
+  load("navigation.html");
+});
 function load(file) {
     fetch(file)
     .then(response => {
