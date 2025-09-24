@@ -10,7 +10,7 @@ function load(file) {
       if (file !== "navigation.html") {
         const homeBtn = document.createElement("button");
         homeBtn.textContent = "Go Back";
-        homeBtn.addEventListener("click", () => loadPage("navigation.html"));
+        homeBtn.addEventListener("click", () => load("navigation.html"));
         document.body.prepend(homeBtn);
       }
     })
