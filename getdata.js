@@ -13,6 +13,7 @@ function dateChanged(date) {
     .then(response => response.json())
     .then(result => {
       sessionStorage.setItem("events", JSON.stringify(result.data?.attributes?.rows  || []));
+      console.log(JSON.stringify(result.data?.attributes?.rows  || []));
     })
     .catch(error => console.error("Error:", error));
 }
