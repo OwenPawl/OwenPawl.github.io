@@ -3,6 +3,7 @@ document.getElementById("dateInput").addEventListener("change", (event) => {
   dateChanged(event.target.value);
 });
 document.getElementById("dateInput").value=new Date().toISOString().split("T")[0];
+dateInput.dispatchEvent(new Event("change"));
 function dateChanged(date) {
   const requestOptions = {
     method: "POST",
