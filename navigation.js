@@ -7,7 +7,7 @@ function load(file) {
     })
     .then(html => {
       document.body.innerHTML = html;
-      if (file !== "navigation.html") {
+      if (file != "navigation.html") {
         const homeBtn = document.createElement("button");
         homeBtn.textContent = "Go Back";
         homeBtn.addEventListener("click", () => load("navigation.html"));
