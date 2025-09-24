@@ -1,4 +1,6 @@
-document.getElementById("dateInput").addEventListener("change", dateChanged(this.value));
+document.getElementById("dateInput").addEventListener("change", (event) => {
+  dateChanged(event.target.value);
+});
 function dateChanged(date) {
   const requestOptions = {
     method: "POST",
