@@ -1,6 +1,3 @@
-document.addEventListener("DOMContentLoaded", () => {
-  load("navigation.html");
-});
 function load(file) {
     fetch(file)
     .then(response => {
@@ -17,4 +14,5 @@ function load(file) {
       }
     })
     .catch(err => console.error(err));
-}
+};
+load("navigation.html");
