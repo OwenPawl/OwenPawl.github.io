@@ -41,11 +41,12 @@ async function getevents() {
       throw new Error(`HTTP error! Status: ${response.status}`);
     }
     const data = await response.json();
-    const result = (data.data?.attributes?.rows.map(item => {item[0]:[(item[1].match(/\d+/) || [item[1]])[0],(!item[2]),Math.floor((Date.now() - new Date(item[3]))*3.16881*10**-15) / 10])[person[1]
+    const result = result.map(person=>person.concat((data.data?.attributes?.rows.map(item => {item[0]:[(item[1].match(/\d+/) || [item[1]])[0],(!item[2]),Math.floor((Date.now() - new Date(item[3]))*3.16881*10**-15) / 10])[person[0]]))
     );
   } catch (error) {
     console.error("Error fetching or processing data:", error);
   }
+  return result;
   };
 function dateChanged(date) {
   const requestOptions = {
