@@ -6,8 +6,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
   <script src="initialize_access.js"></script>
+  <script src="getdata.js"></script>
 <body>
-  <input id="dateInput" type="date">
+  <input id="dateInput" type="date" onchange="dateChanged(this.value)">
   <button onclick="window.location.href='schedule.html'">View Schedule</button>
   <button onclick="window.location.href='checkin.html'">Check In</button>
   <button onclick="window.location.href='noshow.html'">No Show</button>
