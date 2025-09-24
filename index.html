@@ -9,6 +9,8 @@
 <body>
   <h1>loading</h1>
 </body>
-    <script src="navigation.js" defer></script>
+    <script src="navigation.js" defer>
+      document.getElementById("dateInput").value=new Date().toISOString().split("T")[0];
+    </script>
     <script src="getdata.js"></script>
 </html>
