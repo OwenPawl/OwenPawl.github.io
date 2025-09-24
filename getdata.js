@@ -2,10 +2,6 @@ document.getElementById("dateInput").addEventListener("change", (event) => {
   console.log("dateInput changed, value:", event.target.value)
   dateChanged(event.target.value);
 });
-if (!document.getElementById("dateInput").value) {
-  document.getElementById("dateInput").value=new Date().toISOString().split("T")[0];
-  dateChanged(document.getElementById("dateInput").value);
-};
 function dateChanged(date) {
   const requestOptions = {
     method: "POST",
@@ -21,4 +17,8 @@ function dateChanged(date) {
       console.log(JSON.stringify(result.data?.attributes?.rows  || []));
     })
     .catch(error => console.error("Error:", error));
+};
+if (!document.getElementById("dateInput").value) {
+  document.getElementById("dateInput").value=new Date().toISOString().split("T")[0];
+  dateChanged(document.getElementById("dateInput").value);
 };
