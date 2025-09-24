@@ -2,6 +2,7 @@ document.getElementById("dateInput").addEventListener("change", (event) => {
   console.log("dateInput changed, value:", event.target.value)
   dateChanged(event.target.value);
 });
+document.getElementById("dateInput").value=new Date().toISOString().split("T")[0]
 function dateChanged(date) {
   const requestOptions = {
     method: "POST",
