@@ -1,1 +1,5 @@
-document.getElementById("container").remove()
+document.getElementById("schedule").remove()
+document.getElementById("checkin").remove()
+document.getElementById("noshow").remove()
+document.getElementById("notes").remove()
+document.getElementById("bonus").remove()
