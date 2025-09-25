@@ -6,6 +6,8 @@ async function getevents() {
   let result = [];
   let staff_id=localStorage.getItem("staff_id");
   let dateInputValue = document.getElementById("dateInput").value
+  console.log(staff_id);
+  console.log(dateInputValue);
   try {
     const requestOptions = {method: "GET",headers: {"Authorization": "Bearer kZEbOpElCispz8mFkeoTsVGVCvSP23mZG82G7eeN","Content-Type": "application/json"},redirect: "follow"};
     const [events,opens] = await Promise.all([
