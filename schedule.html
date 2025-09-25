@@ -1,7 +1,7 @@
 <table id="myTable" border="1"></table>
 <button onclick="load('navigation.html')" id="navigation">Go Back</button>
 
-<script>
+<script defer>
   const data = [["start","end","name","level","new?","age"]...sessionStorage.getItem("schedule").map(item=>item.slice(3,9))]
 
   const table = document.getElementById("myTable");
@@ -17,5 +17,6 @@
     });
     html += "</tr>";
   });
+  console.log(html);
   table.innerHTML = html;
 </script>
