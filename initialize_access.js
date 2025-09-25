@@ -11,11 +11,11 @@ if (!localStorage.getItem("staff_id")) {
     redirect: "follow"
   };
   
-  fetch("https://pike13.com/api/v2/account", requestOptions)
+  fetch("https://mcdonaldswimschool.pike13.com/api/v2/desk/staff_members/me", requestOptions)
     .then(response => response.json())
     .then(result => {
       // Extract the id from the first account
-      localStorage.setItem("staff_id", result.accounts?.[0]?.id);
+      localStorage.setItem("staff_id", result.staff_members?.[0]?.id);
     })
     .catch(error => console.error("Error:", error));
 };
