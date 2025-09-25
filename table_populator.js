@@ -1,5 +1,5 @@
 window.addEventListener("scheduleUpdated", (e) => {
-  updateTable(e.detail.map(item => item.slice(3, 9)));
+  updateTable(e.detail.map(item => item.slice(3, 9)))
 });
 function updateTable(schedule) {
   const data = [["start","end","name","level","new?","age"],...JSON.parse(schedule))];
