@@ -3,66 +3,47 @@ document.getElementById("dateInput").addEventListener("change", (event) => {
   dateChanged(event.target.value);
 });
 async function getevents() {
+  let result = [];
+  let staff_id=localStorage.getItem("staff_id");
+  let dateInputValue = document.getElementById("dateInput").value
   try {
-      const requestOptions = {
-        method: "GET",
-        headers: {"Authorization": "Bearer kZEbOpElCispz8mFkeoTsVGVCvSP23mZG82G7eeN","Content-Type":"application/json"},
-        redirect: "follow"
-      };
-    const response = await fetch(`https://mcdonaldswimschool.pike13.com/api/v2/desk/staff_members/${localStorage.getItem("staff_id")}/event_occurrences.json?&from=${document.getElementById("dateInput").value}T07:00:00Z`,requestOptions);
-    if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
-    }
+    const requestOptions = {method: "GET",headers: {"Authorization": "Bearer kZEbOpElCispz8mFkeoTsVGVCvSP23mZG82G7eeN","Content-Type": "application/json"},redirect: "follow"};
+    const [events,opens] = await Promise.all([
+        fetch(`https://mcdonaldswimschool.pike13.com/api/v2/desk/event_occurrences.json?&from=${dateInputValue}T07:00:00Z&staff_member_ids=${staff_id}`,requestOptions),
+        fetch(`https://mcdonaldswimschool.pike13.com/api/v2/desk/available_times.json?&from=${dateInputValue}T07:00:00Z`,requestOptions)
+    ]);
 
-    const data = await response.json();
-//new Intl.DateTimeFormat("en-US",{hour: "numeric",minute: "2-digit",hour12: true,timeZone: "America/Los_Angeles"}).format(new Date(event.start_at))
-    const result = data.event_occurrences.flatMap(event =>
-      event.people.map(person => [
-        person.id,
-        person.visit_id,
-        person.visit_state,
-        event.start_at,
-        event.end_at,
-        person.name
-      ])
-    );
+    const Events = await events.json();
+    const Opens = await opens.json();
+
+    // flatten people into result array
+    result = [...Events.event_occurrences.flatMap(event =>event.people.map(person => [person.id,person.visit_id,person.visit_state,event.start_at,event.end_at,person.name,"","",""])),...Opens.available_times.filter(open => open.staff_member_id == staff_id).map(({ start_at, end_at, location_id })=>["", location_id, "available", start_at, end_at, "Open", false, ""])]
   } catch (error) {
-    console.error("Error fetching or processing data:", error);
+    console.error("Error fetching or processing first API data:", error);
+    return []; // bail out
   }
+
   try {
-      const requestOptions = {
-        method: "POST",
-        headers: {"Authorization": "Bearer kZEbOpElCispz8mFkeoTsVGVCvSP23mZG82G7eeN","Content-Type":"application/json"},
-        body: JSON.stringify({"data":{"type":"queries","attributes":{"page":{},"fields":["person_id","custom_field_180098","first_visit_date","birthdate"],"filter":${["or",result.map(item => ["eq", "person_id", [item[0].toString()]])]}}}),
-        redirect: "follow"
-      };
-    const response = await fetch(`https://mcdonaldswimschool.pike13.com/desk/api/v3/reports/clients/queries`,requestOptions);
-    if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
-    }
-    const data = await response.json();
-    const result = result.map(person=>person.concat((data.data?.attributes?.rows.map(item => {item[0]:[(item[1].match(/\d+/) || [item[1]])[0],(!item[2]),Math.floor((Date.now() - new Date(item[3]))*3.16881*10**-15) / 10])[person[0]]))
+    const response = await fetch(
+      `https://mcdonaldswimschool.pike13.com/desk/api/v3/reports/clients/queries`,
+      {method:"POST",headers: {"Authorization": "Bearer kZEbOpElCispz8mFkeoTsVGVCvSP23mZG82G7eeN","Content-Type": "application/json"},redirect: "follow",body:JSON.stringify({ data: { type: "queries", attributes: {page:{},fields:["person_id","custom_field_180098","first_visit_date","birthdate"], filter: ["or",result.filter(item=>item[0]).map(item =>["eq","person_id",[item[0].toString()]])]}}})}
     );
+    if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+    const data = await response.json();
+    result = result.map(personRow => {
+      const row = (data.data?.attributes?.rows || []).find(r => r[0] === personRow[0]);
+      if (!row) return personRow;
+      const ageYears = Math.floor((Date.now() - new Date(row[3])) / (1000 * 60 * 60 * 24 * 365)*10)/10;
+      return [...personRow.slice(0, 6), (row[1].match(/\d+/) || [row[1]])[0], !row[2], ageYears];
+    });
+    result = result.sort((a, b) => new Date(a[3]) - new Date(b[3])).map(item=>[...item.slice(0,3),...item.slice(3,5).map(date=>new Intl.DateTimeFormat("en-US", {timeZone: "America/Los_Angeles",hour: "numeric",minute: "2-digit",hour12: true}).format(new Date(date))),...item.slice(5,9)]);
   } catch (error) {
-    console.error("Error fetching or processing data:", error);
+    console.error("Error fetching or processing second API data:", error);
   }
   return result;
-  };
+}
 function dateChanged(date) {
-  const requestOptions = {
-    method: "POST",
-    headers: {"Authorization": "Bearer kZEbOpElCispz8mFkeoTsVGVCvSP23mZG82G7eeN","Content-Type":"application/json"},
-    body: JSON.stringify({"data":{"type":"queries","attributes":{"page":{"limit":500},"fields":["full_name","service_time","first_visit","state","service_location_name","person_id","visit_id"],"filter":["and",[["eq","service_date",[`${date}`]],["eq","instructor_names",[`${localStorage.getItem("staff_name")}`]]]],"sort":["service_time"]}}}),
-    redirect: "follow"
-  };
-  
-  fetch("https://mcdonaldswimschool.pike13.com/desk/api/v3/reports/enrollments/queries", requestOptions)
-    .then(response => response.json())
-    .then(result => {
-      sessionStorage.setItem("events", JSON.stringify(result.data?.attributes?.rows  || []));
-      console.log(JSON.stringify(result.data?.attributes?.rows.map(item => ["eq", "person_id", [item[5].toString()]])  || []));
-    })
-    .catch(error => console.error("Error:", error));
+  getevents().then(result => sessionStorage.setItem("schedule",JSON.stringify(result))).catch(console.error);
 };
 if (!document.getElementById("dateInput").value) {
   document.getElementById("dateInput").value=new Date().toISOString().split("T")[0];
