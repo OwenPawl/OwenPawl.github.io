@@ -43,7 +43,7 @@ async function getevents() {
     console.error("Error fetching or processing second API data:", error);
   }
   return result;
-}
+};
 function dateChanged(date) {
   getevents().then(result => sessionStorage.setItem("schedule",JSON.stringify(result))).catch(console.error);
 };
