@@ -45,7 +45,10 @@ async function getevents() {
   return result;
 };
 function dateChanged(date) {
-  getevents().then(result => sessionStorage.setItem("schedule",JSON.stringify(result))).catch(console.error);
+  getevents().then(result => 
+    sessionStorage.setItem("schedule",JSON.stringify(result));
+    window.dispatchEvent(new CustomEvent("scheduleUpdated", { detail: result }));
+  ).catch(console.error);
 };
 if (!document.getElementById("dateInput").value) {
   document.getElementById("dateInput").value=new Date().toISOString().split("T")[0];
