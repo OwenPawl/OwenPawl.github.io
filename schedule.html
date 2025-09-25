@@ -1,1 +1,20 @@
+<table id="myTable" border="1"></table>
 
+<script>
+  const data = [["start","end","name","level","new?","age"]...sessionStorage.getItem("schedule").map(item=>item.slice(3,9))]
+
+  const table = document.getElementById("myTable");
+
+  // Build HTML once for performance
+  let html = "";
+  data.forEach((rowData, rowIndex) => {
+    html += "<tr>";
+    rowData.forEach(cellData => {
+      // convert everything to a string for display
+      let display = (cellData === null || cellData === undefined) ? "" : cellData.toString();
+      html += `<${rowIndex === 0 ? "th" : "td"}>${display}</${rowIndex === 0 ? "th" : "td"}>`;
+    });
+    html += "</tr>";
+  });
+  table.innerHTML = html;
+</script>
