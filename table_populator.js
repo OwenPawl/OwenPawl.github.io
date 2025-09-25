@@ -1,8 +1,8 @@
 window.addEventListener("scheduleUpdated", (e) => {
-  updateTable(e.detail.map(item => item.slice(3, 9)));
+  updateTable(e.detail);
 });
 function updateTable(schedule) {
-  const data = [["start","end","name","level","new?","age"],...JSON.parse(schedule)];
+  const data = [["start","end","name","level","new?","age"],...JSON.parse(schedule).map(item=>item.slice(3,9)];
 
   const table = document.getElementById("myTable");
 
@@ -20,4 +20,4 @@ function updateTable(schedule) {
   console.log(html);
   table.innerHTML = html;
 };
-updateTable(sessionStorage.getItem("schedule")).map(item=>item.slice(3,9));
+updateTable(sessionStorage.getItem("schedule"));
