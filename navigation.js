@@ -2,7 +2,7 @@ function load(file, scriptFile) {
   fetch(file)
     .then(r => r.text())
     .then(html => {
-      document.body.innerHTML = html;
+      document.getElementById("app").innerHTML = html;
 
       if (scriptFile) {
         const script = document.createElement("script");
