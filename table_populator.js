@@ -3,7 +3,14 @@ window.addEventListener("scheduleUpdated", (e) => {
 });
 
 function updateTable(schedule) {
-  const rawData = JSON.parse(sessionStorage.getItem("schedule") || "[]") || [];
+  // Robust JSON parsing with error handling
+  let rawData = [];
+  try {
+    rawData = JSON.parse(sessionStorage.getItem("schedule") || "[]") || [];
+  } catch (err) {
+    console.error('Could not parse schedule JSON:', sessionStorage.getItem("schedule"), err);
+    rawData = [];
+  }
 
   // Group by start time (index 0 of each item after slicing)
   const grouped = {};
