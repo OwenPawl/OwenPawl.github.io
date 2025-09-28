@@ -2,7 +2,7 @@ window.addEventListener("scheduleUpdated", (e) => {
   updateTable(e.detail);
 });
 function updateTable(schedule) {
-  const rows = JSON.parse(schedule || sessionStorage.getItem("schedule") || "[]");
+  const rows = JSON.parse(sessionStorage.getItem("schedule") || "[]");
 
   // group + merge in one pass, ignoring empty values
   const merged = Object.values(
