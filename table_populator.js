@@ -1,27 +1,42 @@
 window.addEventListener("scheduleUpdated", (e) => {
   updateTable(e.detail);
 });
+
 function updateTable(schedule) {
+  const rawData = JSON.parse(sessionStorage.getItem("schedule") || "[]") || [];
+
+  // Group by start time (index 0 of each item after slicing)
+  const grouped = {};
+  for (const item of rawData.map(x => x.slice(3, 9))) {
+    const start = item[0];
+    if (!grouped[start]) grouped[start] = [];
+    grouped[start].push(item);
+  }
+
+  // Prepare table rows: first row is header, then group rows by start time
   const data = [
     ["start", "end", "name", "level", "new?", "age"],
-    ...(JSON.parse(sessionStorage.getItem("schedule") || "[]") || []).map(item => item.slice(3, 9))
+    ...Object.values(grouped).map(group => {
+      // For each column, join all values with <br> if multiple exist
+      return group[0].map((_, colIdx) =>
+        group.map(row => row[colIdx] ?? "").join("<br>")
+      );
+    })
   ];
 
   const table = document.getElementById("myTable");
 
-  // Build HTML once for performance
+  // Build HTML for the table
   let html = "";
   data.forEach((rowData, rowIndex) => {
     html += "<tr>";
     rowData.forEach(cellData => {
-      // convert everything to a string for display
       let display = (cellData === null || cellData === undefined) ? "" : cellData.toString();
       html += `<${rowIndex === 0 ? "th" : "td"}>${display}</${rowIndex === 0 ? "th" : "td"}>`;
     });
     html += "</tr>";
   });
 
-  console.log(html);
   table.innerHTML = html;
 }
 
