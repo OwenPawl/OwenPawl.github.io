@@ -20,9 +20,10 @@ async function getevents() {
 
     // flatten people into result array
     result = [...Events.event_occurrences.flatMap(event =>event.people.map(person => [person.id,person.visit_id,person.visit_state,event.start_at,event.end_at,person.name,"","",""])),...Opens.available_times.filter(open => open.staff_member_id == staff_id).map(({ start_at, end_at, location_id })=>["", location_id, "available", start_at, end_at, "Open", "", "", ""])];
-    sessionStorage.setItem("schedule", JSON.stringify(result.sort((a, b) => new Date(a[3]) - new Date(b[3])).map(item=>[...item.slice(0,3),...item.slice(3,5).map(date=>new Intl.DateTimeFormat("en-US", {timeZone: "America/Los_Angeles",hour: "numeric",minute: "2-digit",hour12: true}).format(new Date(date))),...item.slice(5,9)])}));
+    result = result.sort((a, b) => new Date(a[3]) - new Date(b[3])).map(item=>[...item.slice(0,3),...item.slice(3,5).map(date=>new Intl.DateTimeFormat("en-US", {timeZone: "America/Los_Angeles",hour: "numeric",minute: "2-digit",hour12: true}).format(new Date(date))),...item.slice(5,9)]);
+    sessionStorage.setItem("schedule", JSON.stringify(result));
     window.dispatchEvent(new CustomEvent("scheduleUpdated", { detail: sessionStorage.getItem("schedule")}));
-    console.log(result.sort((a, b) => new Date(a[3]) - new Date(b[3])).map(item=>[...item.slice(0,3),...item.slice(3,5).map(date=>new Intl.DateTimeFormat("en-US", {timeZone: "America/Los_Angeles",hour: "numeric",minute: "2-digit",hour12: true}).format(new Date(date))),...item.slice(5,9)])});
+    console.log(result);
   } catch (error) {
     console.error("Error fetching or processing first API data:", error);
     return []; // bail out
