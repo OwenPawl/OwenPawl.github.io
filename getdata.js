@@ -19,7 +19,7 @@ async function getevents() {
     const Opens = await opens.json();
 
     // flatten people into result array
-    result = [...Events.event_occurrences.flatMap(event =>event.people.map(person => [person.id,person.visit_id,person.visit_state,event.start_at,event.end_at,person.name,"","",""])),..(Opens.available_times || []).map(open => ["", "", "", open.start_at, open.end_at, "Open", "", "", ""])];
+    result = [...Events.event_occurrences.flatMap(event =>event.people.map(person => [person.id,person.visit_id,person.visit_state,event.start_at,event.end_at,person.name,"","",""])),...(Opens.available_times || []).map(open => ["", "", "", open.start_at, open.end_at, "Open", "", "", ""])];
     // Filter out rows with invalid or missing start times before sorting/formatting
     result = result.filter(item => item[3] && !isNaN(Date.parse(item[3])));
     result = result.sort((a, b) => new Date(a[3]) - new Date(b[3])).map(item=>[...item.slice(0,3),...item.slice(3,5).map(date=>{
