@@ -35,7 +35,7 @@ function updateTable(schedule) {
     grouped[start].push({ idx: i, data: item });
   }
 
-  // Prepare table header
+  // Prepare table header (FIX: duration instead of end)
   const data = [
     ["start", "duration", "name", "level", "new?", "age"],
   ];
