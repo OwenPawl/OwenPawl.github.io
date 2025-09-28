@@ -2,21 +2,23 @@ window.addEventListener("scheduleUpdated", (e) => {
   updateTable(e.detail);
 });
 function updateTable(schedule) {
-  const data = [["start","end","name","level","new?","age"],...(JSON.parse(sessionStorage.getItem("schedule") || "[]") || []).map(item => item.slice(3, 9))];
-  const table = document.getElementById("myTable");
+  const rows = JSON.parse(schedule || sessionStorage.getItem("schedule") || "[]");
+  const merged = Object.values(
+    rows.reduce((acc, [,,, start, end, name, level, isNew, age]) => {
+      acc[start] ??= [start, end, [], [], [], []];
+      acc[start][2].push(name);
+      acc[start][3].push(level);
+      acc[start][4].push(isNew);
+      acc[start][5].push(age);
+      return acc;
+    }, {})
+  ).map(([start, end, names, levels, news, ages]) => [
+    start, end, names.join("<br>"), levels.join("<br>"), news.join("<br>"), ages.join("<br>")
+  ]);
 
-  // Build HTML once for performance
-  let html = "";
-  data.forEach((rowData, rowIndex) => {
-    html += "<tr>";
-    rowData.forEach(cellData => {
-      // convert everything to a string for display
-      let display = (cellData === null || cellData === undefined) ? "" : cellData.toString();
-      html += `<${rowIndex === 0 ? "th" : "td"}>${display}</${rowIndex === 0 ? "th" : "td"}>`;
-    });
-    html += "</tr>";
-  });
-  console.log(html);
-  table.innerHTML = html;
+  const data = [["start","end","name","level","new?","age"], ...merged];
+  document.getElementById("myTable").innerHTML = data
+    .map((row,i) => `<tr>${row.map(cell => `<${i? "td":"th"}>${cell??""}</${i? "td":"th"}>`).join("")}</tr>`)
+    .join("");
 };
 updateTable(sessionStorage.getItem("schedule"));
