@@ -20,11 +20,7 @@ async function getevents() {
 
     // flatten people into result array
     result = [...Events.event_occurrences.flatMap(event =>event.people.map(person => [person.id,person.visit_id,person.visit_state,event.start_at,event.end_at,person.name,"","",""])),...Opens.available_times.filter(open => open.staff_member_id == staff_id).map(({ start_at, end_at, location_id })=>["", location_id, "available", start_at, end_at, "Open", "", "", ""])];
-    result = result.filter(item => item[3] && !isNaN(Date.parse(item[3])));
-    result = result.sort((a, b) => new Date(a[3]) - new Date(b[3])).map(item=>[...item.slice(0,3),...item.slice(3,5).map(date=>{
-      if (!date || isNaN(Date.parse(date))) return "";
-      return new Intl.DateTimeFormat("en-US", {timeZone: "America/Los_Angeles",hour: "2-digit",minute: "2-digit"}).format(new Date(date));
-    })]);
+    result = result.sort((a, b) => new Date(a[3]) - new Date(b[3])).map(item=>[...item.slice(0,3),...item.slice(3,5).map(date=>new Intl.DateTimeFormat("en-US", {timeZone: "America/Los_Angeles",hour: "numeric",minute: "2-digit",hour12: true}).format(new Date(date))),...item.slice(5,9)]);
     sessionStorage.setItem("schedule", JSON.stringify(result));
     window.dispatchEvent(new CustomEvent("scheduleUpdated", { detail: sessionStorage.getItem("schedule")}));
     console.log(result);
@@ -36,7 +32,7 @@ async function getevents() {
   try {
     const response = await fetch(
       `https://mcdonaldswimschool.pike13.com/desk/api/v3/reports/clients/queries`,
-      {method:"POST",headers: {"Authorization": "Bearer kZEbOpElCispz8mFkeoTsVGVCvSP23mZG82G7eeN","Content-Type": "application/json"},redirect: "follow",body:JSON.stringify({ data: { type: "queries", attributes: {page:{},fields:["person_id","custom_field_180098","first_visit_date","birthdate"], filter: ["or",result.filter(item=>item[0]).map(item =>["eq","person_id",[item[0].toString()]])]}})}
+      {method:"POST",headers: {"Authorization": "Bearer kZEbOpElCispz8mFkeoTsVGVCvSP23mZG82G7eeN","Content-Type": "application/json"},redirect: "follow",body:JSON.stringify({ data: { type: "queries", attributes: {page:{},fields:["person_id","custom_field_180098","first_visit_date","birthdate"], filter: ["or",result.filter(item=>item[0]).map(item =>["eq","person_id",[item[0].toString()]])]}}})}
     );
     if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
     const data = await response.json();
@@ -46,12 +42,7 @@ async function getevents() {
       const ageYears = Math.floor((Date.now() - new Date(row[3])) / (1000 * 60 * 60 * 24 * 365)*10)/10;
       return [...personRow.slice(0, 6), (row[1].match(/\d+/) || [row[1]])[0], !row[2], ageYears];
     });
-    // Filter again in case age/date logic introduced any NaNs or invalid dates
-    result = result.filter(item => item[3] && !isNaN(Date.parse(item[3])));
-    result = result.sort((a, b) => new Date(a[3]) - new Date(b[3])).map(item=>[...item.slice(0,3),...item.slice(3,5).map(date=>{
-      if (!date || isNaN(Date.parse(date))) return "";
-      return new Intl.DateTimeFormat("en-US", {timeZone: "America/Los_Angeles",hour: "2-digit",minute: "2-digit"}).format(new Date(date));
-    }), ...item.slice(5)]);
+    result = result.sort((a, b) => new Date(a[3]) - new Date(b[3])).map(item=>[...item.slice(0,3),...item.slice(3,5).map(date=>new Intl.DateTimeFormat("en-US", {timeZone: "America/Los_Angeles",hour: "numeric",minute: "2-digit",hour12: true}).format(new Date(date))),...item.slice(5,9)]);
   } catch (error) {
     console.error("Error fetching or processing second API data:", error);
   }
