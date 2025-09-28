@@ -19,7 +19,7 @@ async function getevents() {
     const Opens = await opens.json();
 
     // flatten people into result array
-    result = [...Events.event_occurrences.flatMap(event =>event.people.map(person => [person.id,person.visit_id,person.visit_state,event.start_at,event.end_at,person.name,"","",""])),...Opens.available_times.filter(open => open.staff_member_id == staff_id).map(({ start_at, end_at, location_id })=>["", location_id, "available", start_at, end_at, "Open", false, ""])]
+    result = [...Events.event_occurrences.flatMap(event =>event.people.map(person => [person.id,person.visit_id,person.visit_state,event.start_at,event.end_at,person.name,"","",""])),...Opens.available_times.filter(open => open.staff_member_id == staff_id).map(({ start_at, end_at, location_id })=>["", location_id, "available", start_at, end_at, "Open", "", false, ""])]
   } catch (error) {
     console.error("Error fetching or processing first API data:", error);
     return []; // bail out
