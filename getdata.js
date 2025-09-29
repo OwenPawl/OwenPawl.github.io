@@ -9,7 +9,7 @@ async function getevents() {
   console.log(staff_id);
   console.log(dateInputValue);
   try {
-    const requestOptions = {method: "GET",headers: {"Authorization": `Bearer ${localStorage.getItem("staff_id")}`,"Content-Type": "application/json"},redirect: "follow"};
+    const requestOptions = {method: "GET",headers: {"Authorization": `Bearer ${localStorage.getItem("access_token")}`,"Content-Type": "application/json"},redirect: "follow"};
     const [events,opens] = await Promise.all([
         fetch(`https://mcdonaldswimschool.pike13.com/api/v2/desk/event_occurrences.json?&from=${dateInputValue}T07:00:00Z&staff_member_ids=${staff_id}`,requestOptions),
         fetch(`https://mcdonaldswimschool.pike13.com/api/v2/desk/available_times.json?&from=${dateInputValue}T07:00:00Z`,requestOptions)
