@@ -21,7 +21,7 @@ function updateTable(schedule) {
       j++;
     }
     if (state == "late_canceled"||state=="canceled"){
-      merged.push({ start, end: blockEnd, name: "Canceled", level: "", New: "", age: "" });
+      merged.push({ start, end: blockEnd, name: "Canceled", level: "&#12644;", New: "&#12644;", age: "&#12644;" });
     } else {
       merged.push({ start, end: blockEnd, name, level, New, age });
     }
@@ -40,9 +40,9 @@ function updateTable(schedule) {
     const duration = (new Date(`Jan 1 2000 ${rows.length === 1 ? rows[0].end : rows.at(-1).end}`) - new Date(`Jan 1 2000 ${start}`)) / 60000;
     if (rows.length === 1) {
       const r = rows[0];
-      return [start.split(" ")[0], duration, r.name, r.level, r.New ? "&#9745;" : "&#9744;", r.age];
+      return [start.split(" ")[0], duration, r.name, r.level, r.New ? "&#12644;" : "&#9744;", r.age];
     }
-    return [start.split(" ")[0],duration,rows.map(r => r.name),rows.map(r => r.level),rows.map(r => r.New ? "&#9745;" : "&#9744;"),rows.map(r => r.age)];
+    return [start.split(" ")[0],duration,rows.map(r => r.name),rows.map(r => r.level),rows.map(r => r.New ? "&#12644;" : "&#9744;"),rows.map(r => r.age)];
   });
   let tableRows;
 
