@@ -42,7 +42,7 @@ function updateTable(schedule) {
   if (output.length === 0) {
     tableRows = [["No Lessons For This Day"]];
   } else {
-    tableRows = [["start", "duration", "name", "level", "new?", "age"], ...output];
+    tableRows = [["start", "min.", "name", "level", "new?", "age"], ...output];
   }
   
   const table = document.getElementById("myTable");
