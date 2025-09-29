@@ -3,8 +3,6 @@ window.addEventListener("scheduleUpdated", (e) => {
 });
 function updateTable(schedule) {
   let data = JSON.parse(sessionStorage.getItem("schedule"));
-  
-  // helper for minutes difference
   const merged = [];
   for (let i = 0; i < data.length; ) {
     const [id,, , start, end, name, slot, attended, cost] = data[i];
@@ -39,11 +37,10 @@ function updateTable(schedule) {
     }
     return [start,duration,rows.map(r => r.name),rows.map(r => r.slot),rows.map(r => r.attended),rows.map(r => r.cost)];
   });
-
-  data = [
+  console.log(output);
+  let data = [
     ["start", "end", "name", "level", "new?", "age"],
-    ...(output)
-  ];
+    ...output];
 
   const table = document.getElementById("myTable");
 
