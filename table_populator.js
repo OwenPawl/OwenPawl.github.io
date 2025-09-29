@@ -1,3 +1,6 @@
+document.getElementById("dateInput").addEventListener("change", (event) => {
+  document.getElementById("myTable").innerHTML = "<tr><th>Loading...</th></tr>";
+});
 window.addEventListener("scheduleUpdated", (e) => {
   updateTable(e.detail);
 });
