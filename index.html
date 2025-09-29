@@ -11,8 +11,12 @@
   <button id="nextDate">&rarr;</button>
   <input id="dateInput" type="date">
   <script defer>
-    document.getElementById('prevDate').addEventListener('click', () => document.getElementById("dateInput").value=new Date(Date.parse(document.getElementById("dateInput").value)-864E5).toISOString().split("T")[0]);
-    document.getElementById('nextDate').addEventListener('click', () => document.getElementById("dateInput").value=new Date(Date.parse(document.getElementById("dateInput").value)+864E5).toISOString().split("T")[0]);
+    function changeDate(days){
+      document.getElementById("dateInput").value=new Date(Date.parse(document.getElementById("dateInput").value)+days*864E5).toISOString().split("T")[0];
+      document.getElementById("dateInput").dispatchEvent(new Event("change")));
+    }
+    document.getElementById('prevDate').addEventListener('click', () => changeDate(-1));
+    document.getElementById('nextDate').addEventListener('click', () => changeDate(1));
   </script>
   <div id="app"><h1>...</h1></div>
 </body>
