@@ -5,7 +5,7 @@ function updateTable(schedule) {
   let data = JSON.parse(sessionStorage.getItem("schedule"));
   const merged = [];
   for (let i = 0; i < data.length; ) {
-    const [id,, , start, end, name, slot, attended, cost] = data[i];
+    const [id,, , start, end, name, level, New, age] = data[i];
     let blockEnd = end;
     let j = i + 1;
     while (
@@ -17,7 +17,7 @@ function updateTable(schedule) {
       blockEnd = data[j][4];
       j++;
     }
-    merged.push({ start, end: blockEnd, name, slot, attended, cost });
+    merged.push({ start, end: blockEnd, name, level, New, age });
     i = j;
   }
   
@@ -33,9 +33,9 @@ function updateTable(schedule) {
     const duration = (new Date(`Jan 1 2000 ${rows.length === 1 ? rows[0].end : rows.at(-1).end}`) - new Date(`Jan 1 2000 ${start}`)) / 60000;
     if (rows.length === 1) {
       const r = rows[0];
-      return [start, duration, r.name, r.slot, r.attended, r.cost];
+      return [start, duration, r.name, r.level, r.New, r.age];
     }
-    return [start,duration,rows.map(r => r.name),rows.map(r => r.slot),rows.map(r => r.attended),rows.map(r => r.cost)];
+    return [start,duration,rows.map(r => r.name),rows.map(r => r.level),rows.map(r => r.New),rows.map(r => r.age)];
   });
   let tableRows;
 
