@@ -37,12 +37,13 @@ function updateTable(schedule) {
     }
     return [start,duration,rows.map(r => r.name),rows.map(r => r.slot),rows.map(r => r.attended),rows.map(r => r.cost)];
   });
-  console.log(output);
-  if (output.length==0){
-    const tableRows = [["No Lessons For This Day"]];
+  let tableRows;
+
+  if (output.length === 0) {
+    tableRows = [["No Lessons For This Day"]];
   } else {
-    const tableRows = [["start", "duration", "name", "level", "new?", "age"],...output];
-  };
+    tableRows = [["start", "duration", "name", "level", "new?", "age"], ...output];
+  }
   
   const table = document.getElementById("myTable");
   
