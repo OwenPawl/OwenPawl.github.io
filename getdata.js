@@ -57,6 +57,6 @@ function dateChanged(date) {
     .catch(console.error);
 };
 if (!document.getElementById("dateInput").value) {
-  document.getElementById("dateInput").value=new Date().toLocaleDateString();
+  document.getElementById("dateInput").value=new Date().toLocaleDateString('en-CA');
   dateChanged(document.getElementById("dateInput").value);
 };
