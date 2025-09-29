@@ -7,7 +7,13 @@
 </head>
   <script src="initialize_access.js"></script>
 <body>
+  <button id="prevDate">&larr;</button>
+  <button id="nextDate">&rarr;</button>
   <input id="dateInput" type="date">
+  <script defer>
+    document.getElementById('prevDate').addEventListener('click', () => document.getElementById("dateInput").value=new Date(Date.parse(document.getElementById("dateInput").value)-864E5).toISOString().split("T")[0]);
+    document.getElementById('nextDate').addEventListener('click', () => document.getElementById("dateInput").value=new Date(Date.parse(document.getElementById("dateInput").value)+864E5).toISOString().split("T")[0]);
+  </script>
   <div id="app"><h1>...</h1></div>
 </body>
     <script src="navigation.js" defer></script>
