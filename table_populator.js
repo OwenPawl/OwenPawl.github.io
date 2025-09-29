@@ -36,9 +36,9 @@ function updateTable(schedule) {
     const duration = (new Date(`Jan 1 2000 ${rows.length === 1 ? rows[0].end : rows.at(-1).end}`) - new Date(`Jan 1 2000 ${start}`)) / 60000;
     if (rows.length === 1) {
       const r = rows[0];
-      return [start, duration, r.name, r.level, r.New, r.age];
+      return [start, duration, r.name, r.level, r.New ? "&#9745;" : "&#9744;", r.age];
     }
-    return [start,duration,rows.map(r => r.name),rows.map(r => r.level),rows.map(r => r.New),rows.map(r => r.age)];
+    return [start,duration,rows.map(r => r.name),rows.map(r => r.level),rows.map(r => r.New) ? "&#9745;" : "&#9744;",rows.map(r => r.age)];
   });
   let tableRows;
 
