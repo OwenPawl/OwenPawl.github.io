@@ -38,7 +38,7 @@ function updateTable(schedule) {
       const r = rows[0];
       return [start.split(" ")[0], duration, r.name, r.level, r.New ? "&#9745;" : "&#9744;", r.age];
     }
-    return [start.split(" ")[0],duration,rows.map(r => r.name),rows.map(r => r.level),rows.map(r => r.New) ? "&#9745;" : "&#9744;",rows.map(r => r.age)];
+    return [start.split(" ")[0],duration,rows.map(r => r.name),rows.map(r => r.level),rows.map(r => r.New ? "&#9745;" : "&#9744;"),rows.map(r => r.age)];
   });
   let tableRows;
 
