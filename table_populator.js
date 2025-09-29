@@ -38,28 +38,30 @@ function updateTable(schedule) {
     return [start,duration,rows.map(r => r.name),rows.map(r => r.slot),rows.map(r => r.attended),rows.map(r => r.cost)];
   });
   console.log(output);
-  let data = [
-    ["start", "end", "name", "level", "new?", "age"],
-    ...output];
+const tableRows = [
+  ["start", "duration", "name", "slot", "attended", "cost"],
+  ...output
+];
 
-  const table = document.getElementById("myTable");
+const table = document.getElementById("myTable");
 
-  // Build HTML once for performance
-  let html = "";
-  data.forEach((rowData, rowIndex) => {
-    html += "<tr>";
-    rowData.forEach(cellData => {
-      // If cellData is an array, join its elements with <br>
-      let display;
-      if (Array.isArray(cellData)) {
-        display = cellData.map(x => (x === null || x === undefined) ? "" : x.toString()).join("<br>");
-      } else {
-        display = (cellData === null || cellData === undefined) ? "" : cellData.toString();
-      }
-      html += `<${rowIndex === 0 ? "th" : "td"}>${display}</${rowIndex === 0 ? "th" : "td"}>`;
-    });
-    html += "</tr>";
+let html = "";
+tableRows.forEach((rowData, rowIndex) => {
+  html += "<tr>";
+  rowData.forEach(cellData => {
+    let display;
+    if (Array.isArray(cellData)) {
+      display = cellData.map(x => (x === null || x === undefined) ? "" : x.toString()).join("<br>");
+    } else {
+      display = (cellData === null || cellData === undefined) ? "" : cellData.toString();
+    }
+    html += `<${rowIndex === 0 ? "th" : "td"}>${display}</${rowIndex === 0 ? "th" : "td"}>`;
   });
+  html += "</tr>";
+});
+
+console.log(html);
+table.innerHTML = html;  });
 
   console.log(html);
   table.innerHTML = html;
