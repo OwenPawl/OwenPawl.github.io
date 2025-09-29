@@ -21,7 +21,7 @@ function updateTable(schedule) {
       j++;
     }
     if (state == "late_canceled"||state=="canceled"){
-      merged.push({ start, end: blockEnd, "Canceled",,,});
+      merged.push({ start, end: blockEnd, name: "Canceled", level: "", New: "", age: "" });
     } else {
       merged.push({ start, end: blockEnd, name, level, New, age });
     }
