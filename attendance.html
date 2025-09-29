@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Hello, World!</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+<table id="myTable" border="1"><tbody></tbody></table>
+<input type="submit" value="Submit">
+<script defer>
+const schedule = '[[11664030,613924031,"noshowed","4:00 PM","4:20 PM","Ruby Regier","4",false,6.4],[11664030,613924136,"registered","4:20 PM","4:40 PM","Ruby Regier","4",false,6.4],[14128839,614908908,"registered","4:40 PM","5:00 PM","Maxwell Bartley","3",false,12.3],[10965291,614445637,"registered","5:00 PM","5:20 PM","Langston Massa","5",false,6.9],[13604082,606097752,"registered","5:20 PM","5:40 PM","Rowan McIntosh","2",false,2.9],[14389569,613637748,"registered","5:40 PM","6:00 PM","Simon Dale","1",false,6.4],[13190566,613394380,"registered","6:00 PM","6:20 PM","Judy Tran","3",false,42.9],[13574009,613385481,"registered","6:20 PM","6:40 PM","Kenzie Cline","1",false,2.7],[11962513,610000653,"registered","6:40 PM","7:00 PM","Cameron Kenyon","6",false,9.2],[11962514,610442775,"registered","6:40 PM","7:00 PM","Elise Kenyon","5",false,6.8],[11559838,605570089,"registered","7:00 PM","7:25 PM","Note Time",null,null]]';
+console.log(JSON.parse(schedule).filter(item=>(item[2]!="late_canceled"&&![11485475,11559838].includes(item[0]))).map(i=>[i[1],i[2],i[3],i[5]]));
+const rows=JSON.parse(schedule).filter(item=>(item[2]!="late_canceled"&&![11485475,11559838].includes(item[0]))).map(i=>[i[1],i[2],i[3].split(" ")[0],i[5]]);
+let html="";
+for (let i = 0; i < rows.length; i++){
+  html+="<tr>"
+  for (let j = 2; j < rows[i].length; j++){
+    html+=`<td>${rows[i][j]}</td>`
+  }
+  html+=`<th><button id="${i}" onclick='if (this.textContent === "Check In") {this.textContent = "No Show";} else {this.textContent = "Check In";}'>${(rows[i][1]=="noshowed")?"No Show":"Check In"}</button></th>`
+  html+="</tr>"
+}
+  document.getElementById("myTable").innerHTML = html;
+  </script>
+  </body>
+</html>
