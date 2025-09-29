@@ -8,7 +8,7 @@ function updateTable(schedule) {
   let data = JSON.parse(sessionStorage.getItem("schedule"));
   const merged = [];
   for (let i = 0; i < data.length; ) {
-    const [id,, , start, end, name, level, New, age] = data[i];
+    const [id,,state, start, end, name, level, New, age] = data[i];
     let blockEnd = end;
     let j = i + 1;
     while (
@@ -20,7 +20,11 @@ function updateTable(schedule) {
       blockEnd = data[j][4];
       j++;
     }
-    merged.push({ start, end: blockEnd, name, level, New, age });
+    if (state == "late_canceled"||state=="canceled"){
+      merged.push({ start, end: blockEnd, "Canceled",,,});
+    } else {
+      merged.push({ start, end: blockEnd, name, level, New, age });
+    }
     i = j;
   }
   
