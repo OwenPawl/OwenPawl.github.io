@@ -14,8 +14,13 @@ function updateTable(schedule) {
   data.forEach((rowData, rowIndex) => {
     html += "<tr>";
     rowData.forEach(cellData => {
-      // convert everything to a string for display
-      let display = (cellData === null || cellData === undefined) ? "" : cellData.toString();
+      // If cellData is an array, join its elements with <br>
+      let display;
+      if (Array.isArray(cellData)) {
+        display = cellData.map(x => (x === null || x === undefined) ? "" : x.toString()).join("<br>");
+      } else {
+        display = (cellData === null || cellData === undefined) ? "" : cellData.toString();
+      }
       html += `<${rowIndex === 0 ? "th" : "td"}>${display}</${rowIndex === 0 ? "th" : "td"}>`;
     });
     html += "</tr>";
