@@ -40,16 +40,16 @@ function updateTable(schedule) {
     const duration = (new Date(`Jan 1 2000 ${rows.length === 1 ? rows[0].end : rows.at(-1).end}`) - new Date(`Jan 1 2000 ${start}`)) / 60000;
     if (rows.length === 1) {
       const r = rows[0];
-      return [start.split(" ")[0], duration, r.name, r.level, r.New ? "&#9745;" : "&#12644;", r.age];
+      return [start.split(" ")[0], duration, r.name, r.level, r.age, r.New ? "&#9745;" : "&#12644;"];
     }
-    return [start.split(" ")[0],duration,rows.map(r => r.name),rows.map(r => r.level),rows.map(r => r.New ? "&#9745;" : "&#12644;"),rows.map(r => r.age)];
+    return [start.split(" ")[0],duration,rows.map(r => r.name),rows.map(r => r.level),rows.map(r => r.age),rows.map(r => r.New ? "&#9745;" : "&#12644;")];
   });
   let tableRows;
 
   if (output.length === 0) {
     tableRows = [["No Lessons For This Day"]];
   } else {
-    tableRows = [["start", "min.", "name", "level", "new?", "age"], ...output];
+    tableRows = [["Start", "Min.", "Name", "Lvl", "Age", "New"], ...output];
   }
   
   const table = document.getElementById("myTable");
