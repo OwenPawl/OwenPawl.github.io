@@ -39,13 +39,10 @@ function updateTable(schedule) {
   });
   console.log(output);
   if (output.length==0){
-    const tableRows = [["No Lessons For This Day"]]
+    const tableRows = [["No Lessons For This Day"]];
   } else {
-    const tableRows = [
-      ["start", "duration", "name", "level", "new?", "age"],
-      ...output
-    ];
-  }
+    const tableRows = [["start", "duration", "name", "level", "new?", "age"],...output];
+  };
   
   const table = document.getElementById("myTable");
   
