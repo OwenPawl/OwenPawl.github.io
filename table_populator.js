@@ -32,7 +32,7 @@ function updateTable(schedule) {
   // 3. Build final output
   const output = Object.entries(groups).map(([start, rows]) => {
     // duration = minutes from first start to last end (if multiple)
-    const duration = (new Date(`Jan 1 2000 ${rows.length === 1 ? rows[0].end : rows.at(-1).end}`) - new Date(`Jan 1 2000 ${start}`)) / 60000);
+    const duration = (new Date(`Jan 1 2000 ${rows.length === 1 ? rows[0].end : rows.at(-1).end}`) - new Date(`Jan 1 2000 ${start}`)) / 60000;
     if (rows.length === 1) {
       const r = rows[0];
       return [start, duration, r.name, r.slot, r.attended, r.cost];
