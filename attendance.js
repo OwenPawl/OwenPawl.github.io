@@ -20,7 +20,7 @@ function updateTable(){
   document.getElementById("myTable").innerHTML = (rows.length>0)?html:"<tr><th>No Events</th></tr>";
 };
 updateTable();
-document.getElementById("submit").addEventListener("onclick", (event) => {
+document.getElementById("submit").addEventListener("click", (event) => {
   [...document.getElementById("myTable").rows].forEach(row=>{
     console.log(row.cells[2].textContent);
     console.log(row.cells[2].querySelector("button").id);
