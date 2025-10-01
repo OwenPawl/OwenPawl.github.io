@@ -5,7 +5,7 @@ document.getElementById("dateInput").addEventListener("change", (event) => {
   document.getElementById("myTable").innerHTML = "<tr><th>Loading...</th></tr>";
 });
 window.addEventListener("scheduleUpdated", (e) => {
-  updateTable(e.detail);
+  updateTable();
 });
 function updateTable(){
   const schedule = sessionStorage.getItem("schedule")
@@ -16,9 +16,11 @@ function updateTable(){
     for (let j = 2; j < rows[i].length; j++){
       html+=`<td>${rows[i][j]}</td>`
     }
+    if 
     html+=`<th><button id="${i}" onclick='if (this.textContent === "Check In") {this.textContent = "No Show";} else {this.textContent = "Check In";}'>${(rows[i][1]=="noshowed")?"No Show":"Check In"}</button></th>`
     html+="</tr>"
   }
     document.getElementById("myTable").innerHTML = html;
-}
+};
+updateTable();
   </script>
