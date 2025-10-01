@@ -21,8 +21,8 @@ function updateTable(){
 };
 updateTable();
 document.getElementById("submit").addEventListener("onclick", (event) => {
-  document.getElementById("myTable").rows.forEach(row=>{
+  [...document.getElementById("myTable").rows].forEach(row=>{
     console.log(row.cells[2].textContent);
-    console.log(row.cells[2].id);
+    console.log(row.cells[2].querySelector("button").id);
   });
 });
