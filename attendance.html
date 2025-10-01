@@ -16,7 +16,6 @@ function updateTable(){
     for (let j = 2; j < rows[i].length; j++){
       html+=`<td>${rows[i][j]}</td>`
     }
-    if 
     html+=`<th><button id="${i}" onclick='if (this.textContent === "Check In") {this.textContent = "No Show";} else {this.textContent = "Check In";}'>${(rows[i][1]=="noshowed")?"No Show":"Check In"}</button></th>`
     html+="</tr>"
   }
