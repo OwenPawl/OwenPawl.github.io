@@ -10,7 +10,7 @@ window.addEventListener("scheduleUpdated", (e) => {
 function updateTable(){
   const schedule = sessionStorage.getItem("schedule")
   console.log(JSON.parse(schedule).filter(item=>(item[2]!="late_canceled"&&![11485475,11559838].includes(item[0]))).map(i=>[i[1],i[2],i[3],i[5]]));
-  const rows=JSON.parse(schedule).filter(item=>(item[2]!="late_canceled"&&![11485475,11559838].includes(item[0]))).map(i=>[i[1],i[2],i[3].split(" ")[0],i[5]]);
+  const rows=JSON.parse(schedule).filter(item=>(item[2]!="late_canceled"&&![11485475,11559838,13602611,13167161,''].includes(item[0]))).map(i=>[i[1],i[2],i[3].split(" ")[0],i[5]]);
   let html="";
   for (let i = 0; i < rows.length; i++){
     html+="<tr>"
