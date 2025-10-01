@@ -1,17 +1,25 @@
 <table id="myTable" border="1"><tbody></tbody></table>
 <input type="submit" value="Submit">
 <script defer>
-const schedule = sessionStorage.getItem("schedule")
-console.log(JSON.parse(schedule).filter(item=>(item[2]!="late_canceled"&&![11485475,11559838].includes(item[0]))).map(i=>[i[1],i[2],i[3],i[5]]));
-const rows=JSON.parse(schedule).filter(item=>(item[2]!="late_canceled"&&![11485475,11559838].includes(item[0]))).map(i=>[i[1],i[2],i[3].split(" ")[0],i[5]]);
-let html="";
-for (let i = 0; i < rows.length; i++){
-  html+="<tr>"
-  for (let j = 2; j < rows[i].length; j++){
-    html+=`<td>${rows[i][j]}</td>`
+document.getElementById("dateInput").addEventListener("change", (event) => {
+  document.getElementById("myTable").innerHTML = "<tr><th>Loading...</th></tr>";
+});
+window.addEventListener("scheduleUpdated", (e) => {
+  updateTable(e.detail);
+});
+function updateTable(){
+  const schedule = sessionStorage.getItem("schedule")
+  console.log(JSON.parse(schedule).filter(item=>(item[2]!="late_canceled"&&![11485475,11559838].includes(item[0]))).map(i=>[i[1],i[2],i[3],i[5]]));
+  const rows=JSON.parse(schedule).filter(item=>(item[2]!="late_canceled"&&![11485475,11559838].includes(item[0]))).map(i=>[i[1],i[2],i[3].split(" ")[0],i[5]]);
+  let html="";
+  for (let i = 0; i < rows.length; i++){
+    html+="<tr>"
+    for (let j = 2; j < rows[i].length; j++){
+      html+=`<td>${rows[i][j]}</td>`
+    }
+    html+=`<th><button id="${i}" onclick='if (this.textContent === "Check In") {this.textContent = "No Show";} else {this.textContent = "Check In";}'>${(rows[i][1]=="noshowed")?"No Show":"Check In"}</button></th>`
+    html+="</tr>"
   }
-  html+=`<th><button id="${i}" onclick='if (this.textContent === "Check In") {this.textContent = "No Show";} else {this.textContent = "Check In";}'>${(rows[i][1]=="noshowed")?"No Show":"Check In"}</button></th>`
-  html+="</tr>"
+    document.getElementById("myTable").innerHTML = html;
 }
-  document.getElementById("myTable").innerHTML = html;
   </script>
