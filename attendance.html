@@ -19,11 +19,8 @@ function updateTable(){
     html+=`<th><button id="${i}" onclick='if (this.textContent === "Check In") {this.textContent = "No Show";} else {this.textContent = "Check In";}'>${(rows[i][1]=="noshowed")?"No Show":"Check In"}</button></th>`
     html+="</tr>"
   }
-  if (rows.length>0){
-    document.getElementById("myTable").innerHTML = html;
-  }else{
-    document.getElementById("myTable").innerHTML = "<tr><th>No Events</th></tr>";
-  }
+  console.log((rows.length>0)?html:"<tr><th>No Events</th></tr>");
+  document.getElementById("myTable").innerHTML = (rows.length>0)?html:"<tr><th>No Events</th></tr>";
 };
 updateTable();
   </script>
