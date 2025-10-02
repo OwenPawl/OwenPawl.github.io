@@ -41,7 +41,7 @@ updateTable();
 document.getElementById("submit").addEventListener("click", (event) => {
   let attendance=[];
   [...document.getElementById("myTable").rows].forEach(row=>{
-    attendance=attendance.concat(([...row.cells[2].querySelectorAll("button")].map(btn=>({vid:btn.id,state:btn.getAttribute("data-state"),type:btn.textContent})));
+    attendance=attendance.concat(([...row.cells[2].querySelectorAll("button")].map(btn=>({vid:btn.id,state:btn.getAttribute("data-state"),type:btn.textContent}))));
   });
   console.log(attendance);
   const desk="https://mcdonaldswimschool.pike13.com/api/v2/desk/";
