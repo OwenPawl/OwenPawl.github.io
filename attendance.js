@@ -30,7 +30,7 @@ function updateTable(){
   for (let i = 0; i < merged.length; i++){
     html+=`<tr><td>${merged[i].start.split(" ")[0]}</td><td class="text">${merged[i].name}</td><th>`
     for (let j = 0; j < merged[i].vids.length; j++){
-      html+=`<button style="font-size: 16px" id="${merged[i].vids[j]}" data-state="${merged[i].states[j]}" onclick='if (this.textContent === "Check In") {this.textContent = "No Show";} else {this.textContent = "Check In";}'>${(merged[i].states[j]=="noshowed")?"No Show":"Check In"}</button><br>`;
+      html+=`<button class="checkIn" id="${merged[i].vids[j]}" data-state="${merged[i].states[j]}" onclick='if (this.textContent === "Check In") {this.textContent = "No Show";} else {this.textContent = "Check In";}'>${(merged[i].states[j]=="noshowed")?"No Show":"Check In"}</button><br>`;
     };
     html+=`</th><th><button style="font-size: 16px" onclick="location.href='https://mcdonaldswimschool.pike13.com/people/${merged[i].id}/notes';" id="${merged[i].id}">Notes</button></th></tr>`;
   };
