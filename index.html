@@ -10,9 +10,9 @@
     body {font-family: 'Arial', 'Helvetica', sans-serif;}
   </style>
 <body>
-  <button style="font-size:24px" id="prevDate">&larr;</button>
-  <button style="font-size:24px" id="nextDate">&rarr;</button>
-  <input style="font-size:24px" id="dateInput" type="date">
+  <button style="font-size:20px" id="prevDate">&larr;</button>
+  <button style="font-size:20px" id="nextDate">&rarr;</button>
+  <input style="font-size:20px" id="dateInput" type="date">
   <script defer>
     function changeDate(days){
       document.getElementById("dateInput").value=new Date(Date.parse(document.getElementById("dateInput").value)+days*864E5).toISOString().split("T")[0];
