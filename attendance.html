@@ -1,4 +1,5 @@
 <style>
+
   table {
   margin-left: auto;
   margin-right: auto;
@@ -8,10 +9,9 @@
   .text{
     font-family: Nunito, sans-serif;
     font-weight: bold;
-    font-size: 14px;
+    font-size: auto;
     color: #007BB4;
     max-width: calc((100vw - 148px));
-    white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     margin: 4px;
@@ -33,20 +33,20 @@
     .dostuff {
   height: 44px;
   font-size: 16px;
-  width: 80px;
+  width: 88px;
   white-space: nowrap;
   font-family: 'Nunito', sans-serif;
   font-weight: bold;
-  background:#00833D;
+  background:#808080;
   color:#fff;
   margin: 4px;
   padding: 4px;
   border-radius: 44px;
-  border:hidden;
+  border:2px solid #424242;
 }
 </style>
 <table id="myTable" border="1"><tbody></tbody></table>
-<input class="dostuff" id="submit" type="submit" value="Submit">
+<input class="dostuff" style="background:#007BB4;" id="submit" type="submit" value="Submit">
 <input class="dostuff" id="reset" type="reset" value="Reset"><br>
-<button class="dostuff" style="background:#007BB4;" onclick="load('schedule.html','table_populator.js')" id="schedule">Schedule</button>
+<button class="dostuff" onclick="load('schedule.html','table_populator.js')" id="schedule">Schedule</button>
 <!--<button onclick="load('navigation.html','getdata.js')" id="navigation">Go Back</button>-->
