@@ -23,7 +23,7 @@ function updateTable(schedule) {
     if (state == "late_canceled"||state=="canceled"){
       merged.push({ start, end: blockEnd, name: "CANCELED", level: "&#12644;", New: false, age: "&#12644;" });
     } else {
-      merged.push({ start, end: blockEnd, name: (s =>(w = s.trim().split(/\s+/),(w.length > 1 ? [w[0], w[w.length-1]] : [w[0]]).map(x => x[0].toUpperCase() + (/^[A-Z]+$/.test(x) ? x.slice(1).toLowerCase() : x.slice(1))).join(" ")))(name), level, New, age });
+      merged.push({ start, end: blockEnd, name: (s =>(w = s.trim().split(/\s+/),(w.length > 1 ? [w[0], w[w.length-1]] : [w[0]]).map(x => x[0].toUpperCase() + (/^[A-Z]+$/.test(x) ? x.slice(1).toLowerCase() : x.slice(1))).join(" ")))(name)+r.New?"-NC":'', level, age });
     }
     i = j;
   }
@@ -40,9 +40,9 @@ function updateTable(schedule) {
     const duration = (new Date(`Jan 1 2000 ${rows.length === 1 ? rows[0].end : rows.at(-1).end}`) - new Date(`Jan 1 2000 ${start}`)) / 60000;
     if (rows.length === 1) {
       const r = rows[0];
-      return [start.split(" ")[0], duration, r.name+r.New?"-NC":'', r.level, r.age];
+      return [start.split(" ")[0], duration, r.name, r.level, r.age];
     }
-    return [start.split(" ")[0],duration,rows.map(r => r.name+r.New?"-NC":''),rows.map(r => r.level),rows.map(r => r.age)];
+    return [start.split(" ")[0],duration,rows.map(r => r.name),rows.map(r => r.level),rows.map(r => r.age)];
   });
   let tableRows;
 
