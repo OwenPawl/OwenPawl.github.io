@@ -39,8 +39,9 @@ function updateTable(){
 };
 updateTable();
 document.getElementById("submit").addEventListener("click", (event) => {
+  let attendance = [];
   [...document.getElementById("myTable").rows].forEach(row=>{
-    console.log(row.cells[2].textContent);
-    console.log(row.cells[2].querySelector("button").id);
+    attendance.push([...row.cells[2].querySelectorAll("button")].map(btn=>[btn.id,btn.getAttribute("data-state"),btn.textContent]));
   });
+  console.log(attendance);
 });
