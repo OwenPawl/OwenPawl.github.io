@@ -41,7 +41,11 @@ updateTable();
 document.getElementById("submit").addEventListener("click", (event) => {
   let attendance=[];
   [...document.getElementById("myTable").rows].forEach(row=>{
-    attendance=attendance.concat(([...row.cells[2].querySelectorAll("button")].map(btn=>[btn.id,btn.getAttribute("data-state"),btn.textContent])));
+    attendance=attendance.concat(([...row.cells[2].querySelectorAll("button")].map(btn=>{vid:btn.id,state:btn.getAttribute("data-state"),type:btn.textContent]}));
   });
   console.log(attendance);
+  const desk="https://mcdonaldswimschool.pike13.com/api/v2/desk/";
+  await Promise.allSettled(attendance.filter(visit=>visit.type=="Check In"?"complete":"noshow"!=visit.state&&visit.state!="registered").map(visit=>fetch(desk+`visits/${visit.vid}`,{body:JSON.stringify({"visit":{"state_event":"reset"}}),method:"PUT",headers: {"Authorization": `Bearer ${localStorage.getItem("access_token")}`,"Content-Type": "application/json"},redirect: "follow"})));
+  await Promise.allSettled(attendance.filter(visit=>visit.type=="Check In"?"complete":"noshow"!=visit.state).map(visit=>fetch(desk+`visits/${visit.vid}`,{body:JSON.stringify({"visit":{"state_event":visit.type=="Check In"?"complete":"noshow"}}),method:"PUT",headers: {"Authorization": `Bearer ${localStorage.getItem("access_token")}`,"Content-Type": "application/json"},redirect: "follow"})));
+  await Promise.allSettled(attendance.filter(visit=>visit.type=="No Show"&&visit.state!="noshow").map(visit=>fetch(desk+`punches`,{body:JSON.stringify({"punch":{"visit_id":${visit.vid}}}),method:"POST",headers: {"Authorization": `Bearer ${localStorage.getItem("access_token")}`,"Content-Type": "application/json"},redirect: "follow"})));
 });
