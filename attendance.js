@@ -91,5 +91,5 @@ document.addEventListener('touchend', (e) => {
 }, false);
 
 function onSwipe() {
-  load('schedule.html','table_populator.js');
+  document.getElementById('schedule').click();
 }
