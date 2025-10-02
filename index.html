@@ -7,9 +7,9 @@
 </head>
   <script src="initialize_access.js"></script>
 <body>
-  <button id="prevDate">&larr;</button>
-  <button id="nextDate">&rarr;</button>
-  <input id="dateInput" type="date">
+  <button style="font-size: 16px" id="prevDate">&larr;</button>
+  <button style="font-size: 16px" id="nextDate">&rarr;</button>
+  <input style="font-size: 16px" id="dateInput" type="date">
   <script defer>
     function changeDate(days){
       document.getElementById("dateInput").value=new Date(Date.parse(document.getElementById("dateInput").value)+days*864E5).toISOString().split("T")[0];
