@@ -5,19 +5,39 @@ window.addEventListener("scheduleUpdated", (e) => {
   updateTable();
 });
 function updateTable(){
-  const schedule = sessionStorage.getItem("schedule")
-  const rows=JSON.parse(schedule).filter(item=>(item[2]!="late_canceled"&&![11485475,11559838,13602611,13167161,''].includes(item[0]))).map(i=>[i[0],i[1],i[2],i[3].split(" ")[0],i[5]]);
-  let html="";
-  for (let i = 0; i < rows.length; i++){
-    html+="<tr>"
-    for (let j = 3; j < rows[i].length; j++){
-      html+=`<td>${rows[i][j]}</td>`
+  const data=JSON.parse(schedule).filter(item=>(item[2]!="late_canceled"&&![11485475,11559838,13602611,13167161,''].includes(item[0]))).map(i=>i.splice(0,7));
+  const merged = [];
+  for (let i = 0; i < data.length; ) {
+    const [id,vid,state, start, end, name, level] = data[i];
+    let blockEnd = end;
+    let vids = [vid];
+    let states=[state];
+    let j = i + 1;
+    while (
+      j < data.length &&
+      data[j][0] === id &&
+      data[j][3] === blockEnd // next start matches previous end
+    ) {
+      blockEnd = data[j][4];
+      vids.push(data[j][1]);
+      states.push(data[j][2]);
+      j++;
     }
-    html+=`<th><button id="${rows[i][1]}" onclick='if (this.textContent === "Check In") {this.textContent = "No Show";} else {this.textContent = "Check In";}'>${(rows[i][2]=="noshowed")?"No Show":"Check In"}</button></th>`
+    merged.push({start,end: blockEnd,name,level,id,vids,states});
+    i = j;
+  }
+  let html="";
+  for (let i = 0; i < merged.length; i++){
+    html+="<tr>"
+    html+=`<td>${merged[i].start.split(" ")[0]}</td><td>${(s =>(w = s.trim().split(/\s+/),(w.length > 1 ? [w[0], w[w.length-1]] : [w[0]]).map(x => x[0].toUpperCase() + (/^[A-Z]+$/.test(x) ? x.slice(1).toLowerCase() : x.slice(1))).join(" ")))(merged[i].name)}</td><th>`
+    for (let j = 0; j < merged[i].vids.length; j++){
+      html+=`<button id="${merged[i].vids[j]}" onclick='if (this.textContent === "Check In") {this.textContent = "No Show";} else {this.textContent = "Check In";}'>${(merged[i].states[j]=="noshowed")?"No Show":"Check In"}</button><br>`
+    }
+    html+=`</th><th><button id="${merged[i].id}">Notes</button></th>`
     html+="</tr>"
   }
-  console.log((rows.length>0)?html:"<tr><th>No Events</th></tr>");
-  document.getElementById("myTable").innerHTML = (rows.length>0)?html:"<tr><th>No Events</th></tr>";
+  console.log((merged.length>0)?html:"<tr><th>No Events</th></tr>");
+  document.getElementById("myTable").innerHTML = (merged.length>0)?html:"<tr><th>No Events</th></tr>";
 };
 updateTable();
 document.getElementById("submit").addEventListener("click", (event) => {
