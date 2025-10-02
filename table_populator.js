@@ -40,16 +40,16 @@ function updateTable(schedule) {
     const duration = (new Date(`Jan 1 2000 ${rows.length === 1 ? rows[0].end : rows.at(-1).end}`) - new Date(`Jan 1 2000 ${start}`)) / 60000;
     if (rows.length === 1) {
       const r = rows[0];
-      return [start.split(" ")[0], duration, r.name, r.level, r.age, r.New ? "&#9745;" : "&#12644;"];
+      return [start.split(" ")[0], duration, r.name+r.New?"-NC":'', r.level, r.age];
     }
-    return [start.split(" ")[0],duration,rows.map(r => r.name),rows.map(r => r.level),rows.map(r => r.age),rows.map(r => r.New ? "&#9745;" : "&#12644;")];
+    return [start.split(" ")[0],duration,rows.map(r => r.name+r.New?"-NC":''),rows.map(r => r.level),rows.map(r => r.age)];
   });
   let tableRows;
 
   if (output.length === 0) {
     tableRows = [["No Lessons For This Day"]];
   } else {
-    tableRows = [["Start", "Min.", "Name", "Lvl", "Age", "New"], ...output];
+    tableRows = [["Start", "Min.", "Name", "Lvl", "Age"], ...output];
   }
   
   const table = document.getElementById("myTable");
@@ -73,26 +73,3 @@ function updateTable(schedule) {
   table.innerHTML = html; 
 };
 updateTable(sessionStorage.getItem("schedule"));
-{let touchStartX = 0;
-let touchStartY = 0;
-let touchEndX = 0;
-let touchEndY = 0;
-const threshold = 50;
-
-document.addEventListener('touchstart', (e) => {
-  touchStartX = e.changedTouches[0].screenX;
-  touchStartY = e.changedTouches[0].screenY;
-}, false);
-document.addEventListener('touchend', (e) => {
-  touchEndX = e.changedTouches[0].screenX;
-  touchEndY = e.changedTouches[0].screenY;
-  const deltaX = touchEndX - touchStartX;
-  const deltaY = touchEndY - touchStartY;
-  if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > threshold) {
-    onSwipe();
-  }
-}, false);
-
-function onSwipe() {
-  document.getElementById('attendance').click();
-}}
