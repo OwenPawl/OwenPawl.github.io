@@ -70,7 +70,7 @@ document.getElementById("reset").addEventListener("click", (event) => {
   };
   Reset();
 });
-let touchStartX = 0;
+{let touchStartX = 0;
 let touchStartY = 0;
 let touchEndX = 0;
 let touchEndY = 0;
@@ -92,4 +92,4 @@ document.addEventListener('touchend', (e) => {
 
 function onSwipe() {
   document.getElementById('schedule').click();
-}
+}}
