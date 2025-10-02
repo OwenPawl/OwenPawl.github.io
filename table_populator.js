@@ -73,3 +73,26 @@ function updateTable(schedule) {
   table.innerHTML = html; 
 };
 updateTable(sessionStorage.getItem("schedule"));
+let touchStartX = 0;
+let touchStartY = 0;
+let touchEndX = 0;
+let touchEndY = 0;
+const threshold = 50;
+
+document.addEventListener('touchstart', (e) => {
+  touchStartX = e.changedTouches[0].screenX;
+  touchStartY = e.changedTouches[0].screenY;
+}, false);
+document.addEventListener('touchend', (e) => {
+  touchEndX = e.changedTouches[0].screenX;
+  touchEndY = e.changedTouches[0].screenY;
+  const deltaX = touchEndX - touchStartX;
+  const deltaY = touchEndY - touchStartY;
+  if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > threshold) {
+    onSwipe();
+  }
+}, false);
+
+function onSwipe() {
+  load('attendance.html','attendance.js');
+}
