@@ -68,5 +68,5 @@ document.getElementById("reset").addEventListener("click", (event) => {
     await new Promise(resolve => setTimeout(resolve, 1000));
     updateTable();
   };
-  Attendance();
+  Reset();
 });
