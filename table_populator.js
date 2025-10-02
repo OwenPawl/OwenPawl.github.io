@@ -73,7 +73,7 @@ function updateTable(schedule) {
   table.innerHTML = html; 
 };
 updateTable(sessionStorage.getItem("schedule"));
-let touchStartX = 0;
+{let touchStartX = 0;
 let touchStartY = 0;
 let touchEndX = 0;
 let touchEndY = 0;
@@ -95,4 +95,4 @@ document.addEventListener('touchend', (e) => {
 
 function onSwipe() {
   document.getElementById('attendance').click();
-}
+}}
