@@ -55,3 +55,18 @@ document.getElementById("submit").addEventListener("click", (event) => {
   };
   Attendance();
 });
+document.getElementById("reset").addEventListener("click", (event) => {
+  let attendance=[];
+  [...document.getElementById("myTable").rows].forEach(row=>{
+    attendance=attendance.concat(([...row.cells[2].querySelectorAll("button")].map(btn=>({vid:btn.id,state:btn.getAttribute("data-state"),type:btn.textContent}))));
+  });
+  console.log(attendance);
+  const desk="https://mcdonaldswimschool.pike13.com/api/v2/desk/";
+  async function Reset(){
+    await Promise.allSettled(attendance.map(visit=>fetch(desk+`visits/${visit.vid}`,{body:JSON.stringify({"visit":{"state_event":"reset"}}),method:"PUT",headers: {"Authorization": `Bearer ${localStorage.getItem("access_token")}`,"Content-Type": "application/json"},redirect: "follow"})));
+    document.getElementById("myTable").innerHTML = "<tr><th>Attendance Reset!</th></tr>";
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    updateTable();
+  };
+  Attendance();
+});
