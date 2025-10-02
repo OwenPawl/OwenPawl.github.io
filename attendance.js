@@ -51,7 +51,7 @@ document.getElementById("submit").addEventListener("click", (event) => {
     await Promise.allSettled(attendance.filter(visit=>visit.type=="No Show"&&visit.state!="noshow").map(visit=>fetch(desk+`punches`,{body:JSON.stringify({"punch":{"visit_id":visit.vid}}),method:"POST",headers: {"Authorization": `Bearer ${localStorage.getItem("access_token")}`,"Content-Type": "application/json"},redirect: "follow"})));
     document.getElementById("myTable").innerHTML = "<tr><th>Attendance Submitted!</th></tr>";
     await new Promise(resolve => setTimeout(resolve, 1000));
-    updateTable();
+    document.getElementById("dateInput").dispatchEvent(new Event("change"));
   };
   Attendance();
 });
@@ -66,7 +66,7 @@ document.getElementById("reset").addEventListener("click", (event) => {
     await Promise.allSettled(attendance.map(visit=>fetch(desk+`visits/${visit.vid}`,{body:JSON.stringify({"visit":{"state_event":"reset"}}),method:"PUT",headers: {"Authorization": `Bearer ${localStorage.getItem("access_token")}`,"Content-Type": "application/json"},redirect: "follow"})));
     document.getElementById("myTable").innerHTML = "<tr><th>Attendance Reset!</th></tr>";
     await new Promise(resolve => setTimeout(resolve, 1000));
-    updateTable();
+    document.getElementById("dateInput").dispatchEvent(new Event("change"));
   };
   Reset();
 });
