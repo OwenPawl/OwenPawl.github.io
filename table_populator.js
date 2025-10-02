@@ -94,5 +94,5 @@ document.addEventListener('touchend', (e) => {
 }, false);
 
 function onSwipe() {
-  load('attendance.html','attendance.js');
+  document.getElementById('attendance').click();
 }
