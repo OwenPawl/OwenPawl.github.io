@@ -30,7 +30,7 @@ function updateTable(){
   for (let i = 0; i < merged.length; i++){
     html+=`<tr><td>${merged[i].start.split(" ")[0]}</td><td>${merged[i].name}</td><th>`
     for (let j = 0; j < merged[i].vids.length; j++){
-      html+=`<button id="${merged[i].vids[j]}" onclick='if (this.textContent === "Check In") {this.textContent = "No Show";} else {this.textContent = "Check In";}'>${(merged[i].states[j]=="noshowed")?"No Show":"Check In"}</button><br>`;
+      html+=`<button id="${merged[i].vids[j]}" data-state="${merged[i].states[j]}" onclick='if (this.textContent === "Check In") {this.textContent = "No Show";} else {this.textContent = "Check In";}'>${(merged[i].states[j]=="noshowed")?"No Show":"Check In"}</button><br>`;
     };
     html+=`</th><th><button id="${merged[i].id}">Notes</button></th></tr>`;
   };
