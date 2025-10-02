@@ -30,7 +30,7 @@ function updateTable(){
   for (let i = 0; i < merged.length; i++){
     html+=`<tr><td>${merged[i].start.split(" ")[0]}</td><td><div class="text">${merged[i].name}</div></td><th>`
     for (let j = 0; j < merged[i].vids.length; j++){
-      html+=`<button class="checkIn" id="${merged[i].vids[j]}" data-state="${merged[i].states[j]}" onclick='if (this.textContent === "Check In") {this.textContent = "No Show";} else {this.textContent = "Check In";}'>${(merged[i].states[j]=="noshowed")?"No Show":"Check In"}</button><br>`;
+      html+=`<button class="checkIn" id="${merged[i].vids[j]}" data-state="${merged[i].states[j]}" onclick='if (this.textContent === "Check In") {this.textContent = "No Show";this.style.backgroundColor='#EB0000';} else {this.textContent = "Check In";this.style.backgroundColor='#00833D';}'>${(merged[i].states[j]=="noshowed")?"No Show":"Check In"}</button><br>`;
     };
     html+=`</th><th><button class="checkIn" style="background-color:#007BB4;" onclick="location.href='https://mcdonaldswimschool.pike13.com/people/${merged[i].id}/notes';" id="${merged[i].id}">Notes</button></th></tr>`;
   };
@@ -55,7 +55,7 @@ document.getElementById("submit").addEventListener("click", (event) => {
       document.getElementById("dateInput").dispatchEvent(new Event("change"));
     }else{
       document.getElementById("myTable").innerHTML = "<tr><th>All Events Must Be In the Past</th></tr>";
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await new Promise(resolve => setTimeout(resolve, 2000));
       updateTable();
   };
   };
