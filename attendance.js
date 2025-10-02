@@ -53,7 +53,13 @@ document.getElementById("submit").addEventListener("click", (event) => {
     await new Promise(resolve => setTimeout(resolve, 500));
     document.getElementById("dateInput").dispatchEvent(new Event("change"));
   };
-  Attendance();
+  if (new Date()>new Date(document.getElementById("dateInput").value+" "+JSON.parse(sessionStorage.getItem("schedule")).filter(item=>(item[2]!="late_canceled"&&![11485475,11559838,13602611,13167161,''].includes(item[0]))).map(i=>i[4]).at(-1))){
+    Attendance();
+  }else{
+    document.getElementById("myTable").innerHTML = "<tr><th>All Events Must Be In the Past</th></tr>";
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    updateTable();
+  }
 });
 document.getElementById("reset").addEventListener("click", (event) => {
   let attendance=[];
