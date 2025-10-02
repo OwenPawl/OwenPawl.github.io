@@ -23,7 +23,8 @@ function updateTable(schedule) {
     if (state == "late_canceled"||state=="canceled"){
       merged.push({ start, end: blockEnd, name: "CANCELED", level: "&#12644;", New: false, age: "&#12644;" });
     } else {
-      merged.push({ start, end: blockEnd, name: (s =>(w = s.trim().split(/\s+/),(w.length > 1 ? [w[0], w[w.length-1]] : [w[0]]).map(x => x[0].toUpperCase() + (/^[A-Z]+$/.test(x) ? x.slice(1).toLowerCase() : x.slice(1))).join(" ")))(name)+r.New?"-NC":'', level, age });
+      merged.push({ start, end: blockEnd, name: (s =>(w = s.trim().split(/\s+/),(w.length > 1 ? [w[0], w[w.length-1]] : [w[0]]).map(x => x[0].toUpperCase() + (/^[A-Z]+$/.test(x) ? x.slice(1).toLowerCase() : x.slice(1))).join(" ")))(name).concat((New)?"-NC":''), level, age });
+      
     }
     i = j;
   }
