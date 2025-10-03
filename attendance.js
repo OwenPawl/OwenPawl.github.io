@@ -46,7 +46,7 @@ document.getElementById("submit").addEventListener("click", (event) => {
   console.log(attendance);
   const desk="https://mcdonaldswimschool.pike13.com/api/v2/desk/";
   async function Attendance(){
-    if (new Date() >= new Date(document.getElementById("dateInput").value){
+    if (new Date() >= new Date(document.getElementById("dateInput").value)){
       document.getElementById("myTable").innerHTML = "<tr><th>Attendance Submitted!</th></tr>";
       await Promise.allSettled(attendance.filter(visit=>(visit.type=="Check In"?"complete":"noshow")!=visit.state&&visit.state!="registered").map(visit=>fetch(desk+`visits/${visit.vid}`,{body:JSON.stringify({"visit":{"state_event":"reset"}}),method:"PUT",headers: {"Authorization": `Bearer ${localStorage.getItem("access_token")}`,"Content-Type": "application/json"},redirect: "follow"})));
       await Promise.allSettled(attendance.filter(visit=>visit.type=="Check In"?"complete":"noshow"!=visit.state).map(visit=>fetch(desk+`visits/${visit.vid}`,{body:JSON.stringify({"visit":{"state_event":visit.type=="Check In"?"complete":"noshow"}}),method:"PUT",headers: {"Authorization": `Bearer ${localStorage.getItem("access_token")}`,"Content-Type": "application/json"},redirect: "follow"})));
