@@ -46,7 +46,7 @@ document.getElementById("submit").addEventListener("click", (event) => {
   console.log(attendance);
   const desk="https://mcdonaldswimschool.pike13.com/api/v2/desk/";
   async function Attendance(){
-    if (new Date() > new Date(document.getElementById("dateInput").value + "T" + new Date("1970-01-01 " + JSON.parse(sessionStorage.getItem("schedule")).filter(item => (item[2]!="late_canceled" && ![11485475,11559838,13602611,13167161,''].includes(item[0]))).map(i => i[4]).at(-1)).toTimeString().slice(0,5))){
+    if (new Date() >= new Date(document.getElementById("dateInput").value){
       document.getElementById("myTable").innerHTML = "<tr><th>Attendance Submitted!</th></tr>";
       await Promise.allSettled(attendance.filter(visit=>(visit.type=="Check In"?"complete":"noshow")!=visit.state&&visit.state!="registered").map(visit=>fetch(desk+`visits/${visit.vid}`,{body:JSON.stringify({"visit":{"state_event":"reset"}}),method:"PUT",headers: {"Authorization": `Bearer ${localStorage.getItem("access_token")}`,"Content-Type": "application/json"},redirect: "follow"})));
       await Promise.allSettled(attendance.filter(visit=>visit.type=="Check In"?"complete":"noshow"!=visit.state).map(visit=>fetch(desk+`visits/${visit.vid}`,{body:JSON.stringify({"visit":{"state_event":visit.type=="Check In"?"complete":"noshow"}}),method:"PUT",headers: {"Authorization": `Bearer ${localStorage.getItem("access_token")}`,"Content-Type": "application/json"},redirect: "follow"})));
