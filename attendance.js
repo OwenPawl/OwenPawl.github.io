@@ -28,7 +28,7 @@ function updateTable(){
   }
   let html="";
   for (let i = 0; i < merged.length; i++){
-    html+=`<tr><td>${merged[i].start.split(" ")[0]}</td><td><div class="text">${merged[i].name}</div></td><th>`
+    html+=`<tr><td>${merged[i].start.split(" ")[0]}</td><td><div class="text" style=`"color:"+${(merged[i].states[j]=="noshowed")?"#850000;":(merged[i].states[j]=="completed")?"#00833D;":}`>${merged[i].name}</div></td><th>`
     for (let j = 0; j < merged[i].vids.length; j++){
       html+=`<button class="checkIn" style=`"background-color:"+${(merged[i].states[j]=="noshowed")?"#850000;":"#00833D;"}`"id="${merged[i].vids[j]}" data-state="${merged[i].states[j]}" onclick='if (this.textContent === "Check In") {this.textContent = "No Show";this.style.backgroundColor="#850000";} else {this.textContent = "Check In";this.style.backgroundColor="#00833D";}'>${(merged[i].states[j]=="noshowed")?"No Show":"Check In"}</button><br>`;
     };
