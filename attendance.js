@@ -45,20 +45,45 @@ document.getElementById("submit").addEventListener("click", (event) => {
   });
   console.log(attendance);
   const desk="https://mcdonaldswimschool.pike13.com/api/v2/desk/";
-  async function Attendance(){
-    if (new Date() >= new Date(document.getElementById("dateInput").value)){
-      document.getElementById("myTable").innerHTML = "<tr><th>Attendance Submitted!</th></tr>";
-      await Promise.allSettled(attendance.filter(visit=>(visit.type=="Check In"?"complete":"noshow")!=visit.state&&visit.state!="registered").map(visit=>fetch(desk+`visits/${visit.vid}`,{body:JSON.stringify({"visit":{"state_event":"reset"}}),method:"PUT",headers: {"Authorization": `Bearer ${localStorage.getItem("access_token")}`,"Content-Type": "application/json"},redirect: "follow"})));
-      await Promise.allSettled(attendance.filter(visit=>visit.type=="Check In"?"complete":"noshow"!=visit.state).map(visit=>fetch(desk+`visits/${visit.vid}`,{body:JSON.stringify({"visit":{"state_event":visit.type=="Check In"?"complete":"noshow"}}),method:"PUT",headers: {"Authorization": `Bearer ${localStorage.getItem("access_token")}`,"Content-Type": "application/json"},redirect: "follow"})));
-      await Promise.allSettled(attendance.filter(visit=>visit.type=="No Show"&&visit.state!="noshow").map(visit=>fetch(desk+`punches`,{body:JSON.stringify({"punch":{"visit_id":visit.vid}}),method:"POST",headers: {"Authorization": `Bearer ${localStorage.getItem("access_token")}`,"Content-Type": "application/json"},redirect: "follow"})));
-      await new Promise(resolve => setTimeout(resolve, 500));
-      document.getElementById("dateInput").dispatchEvent(new Event("change"));
-    }else{
-      document.getElementById("myTable").innerHTML = "<tr><th>All Events Must Be In the Past</th></tr>";
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      updateTable();
-  };
-  };
+  async function Attendance() {
+  if (new Date() >= new Date(document.getElementById("dateInput").value)) {
+    document.getElementById("myTable").innerHTML = "<tr><th>Attendance Submitted!</th></tr>";
+    const headers = {
+      "Authorization": `Bearer ${localStorage.getItem("access_token")}`,
+      "Content-Type": "application/json"
+    };
+    // reset
+    for (const v of attendance.filter(v => (v.type == "Check In" ? "complete" : "noshow") != v.state && v.state != "registered")) {
+      await fetch(`${desk}visits/${v.vid}`, {
+        method: "PUT",
+        headers,
+        body: JSON.stringify({ visit: { state_event: "reset" } })
+      });
+    }
+    // update state
+    for (const v of attendance.filter(v => (v.type == "Check In" ? "complete" : "noshow") != v.state)) {
+      await fetch(`${desk}visits/${v.vid}`, {
+        method: "PUT",
+        headers,
+        body: JSON.stringify({ visit: { state_event: v.type == "Check In" ? "complete" : "noshow" } })
+      });
+    }
+    // punch no-shows
+    for (const v of attendance.filter(v => v.type == "No Show" && v.state != "noshow")) {
+      await fetch(`${desk}punches`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ punch: { visit_id: v.vid } })
+      });
+    }
+    await new Promise(r => setTimeout(r, 500));
+    document.getElementById("dateInput").dispatchEvent(new Event("change"));
+  } else {
+    document.getElementById("myTable").innerHTML = "<tr><th>All Events Must Be In the Past</th></tr>";
+    await new Promise(r => setTimeout(r, 2000));
+    updateTable();
+  }
+}
   Attendance();
 });
 document.getElementById("reset").addEventListener("click", (event) => {
