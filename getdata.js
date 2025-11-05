@@ -3,6 +3,7 @@ document.getElementById("dateInput").addEventListener("change", (event) => {
   dateChanged(event.target.value);
 });
 async function getevents() {
+  const midnight=new Date(new Date().setHours(0,0,0,0)).toISOString().slice(11,19);
   let result = [];
   let staff_id=localStorage.getItem("staff_id");
   let dateInputValue = document.getElementById("dateInput").value
@@ -11,8 +12,8 @@ async function getevents() {
   try {
     const requestOptions = {method: "GET",headers: {"Authorization": `Bearer ${localStorage.getItem("access_token")}`,"Content-Type": "application/json"},redirect: "follow"};
     const [events,opens] = await Promise.all([
-        fetch(`https://mcdonaldswimschool.pike13.com/api/v2/desk/event_occurrences.json?&from=${dateInputValue}T07:00:00Z&staff_member_ids=${staff_id}`,requestOptions),
-        fetch(`https://mcdonaldswimschool.pike13.com/api/v2/desk/available_times.json?&from=${dateInputValue}T07:00:00Z`,requestOptions)
+        fetch(`https://mcdonaldswimschool.pike13.com/api/v2/desk/event_occurrences.json?&from=${dateInputValue}T${midnight}Z&staff_member_ids=${staff_id}`,requestOptions),
+        fetch(`https://mcdonaldswimschool.pike13.com/api/v2/desk/available_times.json?&from=${dateInputValue}T${midnight}Z`,requestOptions)
     ]);
 
     const Events = await events.json();
