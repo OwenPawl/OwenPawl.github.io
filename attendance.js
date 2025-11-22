@@ -19,28 +19,7 @@ function normalizeSchedule(scheduleData) {
   return [];
 }
 
-function normalizeState(state) {
-  if (!state) return "registered";
-  const lower = String(state).toLowerCase();
-  if (lower.includes("noshow")) return "noshow";
-  if (lower.includes("complete")) return "complete";
-  return lower;
-}
-
-function updateDateBadge() {
-  const badge = document.getElementById("dateBadge");
-  if (!badge || !dateInput) return;
-  const selected = dateInput.value || new Date().toLocaleDateString("en-CA");
-  const formatted = new Intl.DateTimeFormat("en-US", {
-    weekday: "short",
-    month: "short",
-    day: "numeric"
-  }).format(new Date(selected));
-  badge.textContent = formatted;
-}
-
 function updateTable(schedule){
-  updateDateBadge();
   const data = normalizeSchedule(schedule)
     .filter(item => (item[2]!="late_canceled"&&![11485475,11559838,13602611,13167161,""].includes(item[0])))
     .map(i => i.slice(0,7));
