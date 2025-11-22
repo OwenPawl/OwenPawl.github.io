@@ -2,10 +2,29 @@ document.getElementById("dateInput").addEventListener("change", (event) => {
   document.getElementById("myTable").innerHTML = "<tr><th>Loading...</th></tr>";
 });
 window.addEventListener("scheduleUpdated", (e) => {
-  updateTable();
+  updateTable(e.detail);
 });
-function updateTable(){
-  const data=JSON.parse(sessionStorage.getItem("schedule")).filter(item=>(item[2]!="late_canceled"&&![11485475,11559838,13602611,13167161,''].includes(item[0]))).map(i=>i.splice(0,7));
+
+function normalizeSchedule(scheduleData) {
+  if (Array.isArray(scheduleData)) return scheduleData;
+  if (typeof scheduleData === "string" && scheduleData.trim()) {
+    try { return JSON.parse(scheduleData); } catch (e) { console.error("Unable to parse schedule", e); }
+  }
+  const stored = sessionStorage.getItem("schedule");
+  if (stored) {
+    try { return JSON.parse(stored); } catch (e) { console.error("Unable to parse stored schedule", e); }
+  }
+  return [];
+}
+
+function updateTable(schedule){
+  const data = normalizeSchedule(schedule)
+    .filter(item => (item[2]!="late_canceled"&&![11485475,11559838,13602611,13167161,""].includes(item[0])))
+    .map(i => i.slice(0,7));
+  if (!data.length) {
+    document.getElementById("myTable").innerHTML = "<tr><th>No Events</th></tr>";
+    return;
+  }
   const merged = [];
   for (let i = 0; i < data.length; ) {
     const [id,vid,state, start, end, name, level] = data[i];
