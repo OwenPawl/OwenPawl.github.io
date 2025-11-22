@@ -43,7 +43,10 @@
     .top-bar {
       display: flex;
       justify-content: flex-start;
-      padding: 6px 0 10px;
+      align-items: center;
+      gap: 10px;
+      padding: 4px 0 6px;
+      flex-wrap: wrap;
     }
 
     .date-controls {
@@ -86,8 +89,11 @@
       background: var(--card);
       box-shadow: var(--shadow);
       border-radius: var(--radius-lg);
-      padding: 12px 14px 18px;
+      padding: 10px 14px 16px;
       min-height: 60vh;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
     }
 
     /* Shared styles for loaded screens */
@@ -95,8 +101,22 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 6px;
+      flex-wrap: wrap;
+    }
+
+    .screen-header .title-group {
+      display: inline-flex;
+      align-items: center;
       gap: 8px;
-      margin-bottom: 12px;
+      min-width: 0;
+      flex: 1 1 auto;
+    }
+
+    .screen-header .ghost {
+      width: auto;
+      min-width: 180px;
     }
 
     .screen-title {
@@ -161,6 +181,10 @@
       table-layout: fixed;
     }
 
+    .schedule-table {
+      table-layout: fixed;
+    }
+
     .data-table th,
     .data-table td {
       padding: 12px 10px;
@@ -211,6 +235,21 @@
       word-break: break-word;
     }
 
+    .schedule-table th:nth-child(1),
+    .schedule-table td:nth-child(1) {
+      width: 78px;
+    }
+
+    .schedule-table th:nth-child(2),
+    .schedule-table td:nth-child(2) {
+      width: 70px;
+    }
+
+    .schedule-table th:nth-child(3),
+    .schedule-table td:nth-child(3) {
+      width: 44%;
+    }
+
     .attendance-table td,
     .attendance-table th {
       vertical-align: top;
@@ -220,6 +259,30 @@
       display: flex;
       flex-wrap: wrap;
       gap: 6px;
+    }
+
+    .name-stack {
+      display: grid;
+      gap: 6px;
+      min-width: 0;
+    }
+
+    .name-cell {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      min-width: 0;
+      overflow: hidden;
+      width: 100%;
+    }
+
+    .name-text {
+      display: block;
+      flex: 1 1 auto;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
     .attendance-actions .checkIn {
