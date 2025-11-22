@@ -1,11 +1,33 @@
 document.getElementById("dateInput").addEventListener("change", (event) => {
   document.getElementById("myTable").innerHTML = "<tr><th>Loading...</th></tr>";
 });
+
 window.addEventListener("scheduleUpdated", (e) => {
   updateTable(e.detail);
 });
+
+function normalizeSchedule(scheduleData) {
+  if (Array.isArray(scheduleData)) return scheduleData;
+  if (typeof scheduleData === "string" && scheduleData.trim()) {
+    try {
+      return JSON.parse(scheduleData);
+    } catch (e) {
+      console.error("Unable to parse schedule", e);
+    }
+  }
+  const stored = sessionStorage.getItem("schedule");
+  if (stored) {
+    try { return JSON.parse(stored); } catch (e) { console.error("Unable to parse stored schedule", e); }
+  }
+  return [];
+}
+
 function updateTable(schedule) {
-  let data = JSON.parse(sessionStorage.getItem("schedule"));
+  const data = normalizeSchedule(schedule);
+  if (!data.length) {
+    document.getElementById("myTable").innerHTML = "<tr><th>No Lessons For This Day</th></tr>";
+    return;
+  }
   const merged = [];
   for (let i = 0; i < data.length; ) {
     const [id,,state, start, end, name, level, New, age] = data[i];
