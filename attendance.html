@@ -1,52 +1,18 @@
-<style>
+<div class="screen-header">
+  <div>
+    <p class="pill">Mark arrivals</p>
+    <h2 class="screen-title">Attendance</h2>
+  </div>
+  <span class="badge-new" id="dateBadge" style="color: #007bb4; border-color: rgba(0,123,180,0.25); background: rgba(0,123,180,0.08);">Loading date</span>
+</div>
 
-  table {
-  margin-left: auto;
-  margin-right: auto;
-  border-collapse: collapse; /* optional for cleaner look */
-  width: 100%;
-}
-  .text{
-    font-family: Nunito, sans-serif;
-    font-weight: bold;
-    font-size: auto;
-    color: #007BB4;
-    max-width: calc((100vw - 148px));
-    overflow: hidden;
-    text-overflow: ellipsis;
-    margin: 4px;
-  }
-  .checkIn {
-  width: 80px;
-  height: 44px;
-  white-space: nowrap;
-  font-family: 'Nunito', sans-serif;
-  font-size: 16px;
-  font-weight: bold;
-  background:#00833D;
-  color:#fff;
-  margin: 4px;
-  padding: 4px;
-  border-radius: 8px;
-  border:hidden;
-}
-    .dostuff {
-  height: 44px;
-  font-size: 16px;
-  width: 88px;
-  white-space: nowrap;
-  font-family: 'Nunito', sans-serif;
-  font-weight: bold;
-  background:#808080;
-  color:#fff;
-  margin: 4px;
-  padding: 4px;
-  border-radius: 44px;
-  border:2px solid #424242;
-}
-</style>
-<table id="myTable" border="1"><tbody></tbody></table>
-<input class="dostuff" style="background:#007BB4;" id="submit" type="submit" value="Submit">
-<input class="dostuff" id="reset" type="reset" value="Reset"><br>
-<button class="dostuff" onclick="load('schedule.html','table_populator.js')" id="schedule">Schedule</button>
+<div class="table-wrapper">
+  <table class="data-table" id="myTable"><tbody></tbody></table>
+</div>
+
+<div style="display: grid; gap: 10px; margin-top: 14px; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));">
+  <input class="cta" style="background: linear-gradient(145deg, #00833d, #006d34); box-shadow: 0 14px 30px rgba(0,131,61,0.25);" id="submit" type="submit" value="Submit">
+  <input class="ghost" id="reset" type="reset" value="Reset">
+  <button class="ghost" onclick="load('schedule.html','table_populator.js')" id="schedule">Back to Schedule</button>
+</div>
 <!--<button onclick="load('navigation.html','getdata.js')" id="navigation">Go Back</button>-->
