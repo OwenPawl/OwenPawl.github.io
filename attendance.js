@@ -50,6 +50,10 @@ function updateTable(schedule){
       if (a[0] !== b[0]) return a[0] < b[0] ? -1 : 1;
       return (a[1] ?? 0) - (b[1] ?? 0);
     });
+function updateTable(schedule){
+  const data = normalizeSchedule(schedule)
+    .filter(item => (item[2]!="late_canceled"&&![11485475,11559838,13602611,13167161,""].includes(item[0])))
+    .map(i => i.slice(0,7));
   if (!data.length) {
     document.getElementById("myTable").innerHTML = "<tr><th>No Events</th></tr>";
     return;
