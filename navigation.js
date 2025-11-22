@@ -4,6 +4,10 @@ function load(file, scriptFile) {
     .then(html => {
       document.getElementById("app").innerHTML = html;
 
+      if (typeof placeDateControls === "function") {
+        placeDateControls();
+      }
+
       if (scriptFile) {
         const script = document.createElement("script");
         script.src = scriptFile;

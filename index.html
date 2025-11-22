@@ -42,8 +42,13 @@
 
     .top-bar {
       display: flex;
-      justify-content: flex-start;
+      justify-content: flex-end;
       padding: 6px 0 10px;
+    }
+
+    .top-bar:empty {
+      display: none;
+      padding: 0;
     }
 
     .date-controls {
@@ -97,6 +102,14 @@
       justify-content: space-between;
       gap: 8px;
       margin-bottom: 12px;
+    }
+
+    .screen-header.has-date-controls {
+      align-items: center;
+    }
+
+    .screen-header .date-controls {
+      margin-left: auto;
     }
 
     .screen-title {
@@ -158,6 +171,10 @@
     }
 
     .attendance-table {
+      table-layout: fixed;
+    }
+
+    .schedule-table {
       table-layout: fixed;
     }
 
@@ -248,23 +265,44 @@
       transition: transform 120ms ease, box-shadow 120ms ease, background 120ms ease;
     }
 
+    .schedule-table th:nth-child(1),
+    .schedule-table td:nth-child(1) {
+      width: 72px;
+      white-space: nowrap;
+    }
+
+    .schedule-table th:nth-child(2),
+    .schedule-table td:nth-child(2) {
+      width: 64px;
+      white-space: nowrap;
+    }
+
+    .schedule-table th:nth-child(3),
+    .schedule-table td:nth-child(3) {
+      max-width: 320px;
+      width: 100%;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
     .checkIn:active { transform: translateY(1px) scale(0.99); }
   </style>
 </head>
   <script src="initialize_access.js"></script>
-<body>
-  <div class="app-shell">
-    <main class="content-card">
-      <header class="top-bar">
-        <div class="date-controls">
-          <button class="icon-btn" id="prevDate" aria-label="Previous day">&#8592;</button>
-          <input class="date-input" id="dateInput" type="date">
-          <button class="icon-btn" id="nextDate" aria-label="Next day">&#8594;</button>
-        </div>
-      </header>
-      <div id="app"><h1 class="muted">Loading...</h1></div>
-    </main>
-  </div>
+  <body>
+    <div class="app-shell">
+      <main class="content-card">
+        <header class="top-bar" id="dateHost">
+          <div class="date-controls">
+            <button class="icon-btn" id="prevDate" aria-label="Previous day">&#8592;</button>
+            <input class="date-input" id="dateInput" type="date">
+            <button class="icon-btn" id="nextDate" aria-label="Next day">&#8594;</button>
+          </div>
+        </header>
+        <div id="app"><h1 class="muted">Loading...</h1></div>
+      </main>
+    </div>
   <script defer>
     function changeDate(days) {
       const dateField = document.getElementById("dateInput");
@@ -308,6 +346,21 @@
         triggered = false;
       });
     })();
+  </script>
+  <script>
+    function placeDateControls() {
+      const controls = document.querySelector(".date-controls");
+      const header = document.querySelector("#app .screen-header");
+      const host = document.getElementById("dateHost");
+      if (!controls) return;
+
+      if (header) {
+        header.appendChild(controls);
+        header.classList.add("has-date-controls");
+      } else if (host && !host.contains(controls)) {
+        host.appendChild(controls);
+      }
+    }
   </script>
   <script src="navigation.js" defer></script>
 </body>
