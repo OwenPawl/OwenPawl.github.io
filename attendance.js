@@ -45,22 +45,26 @@ function updateTable(schedule){
     merged.push({start,end: blockEnd,name: (s =>(w = s.trim().split(/\s+/),(w.length > 1 ? [w[0], w[w.length-1]] : [w[0]]).map(x => x[0].toUpperCase() + (/^[A-Z]+$/.test(x) ? x.slice(1).toLowerCase() : x.slice(1))).join(" ")))(name),level,id,vids,states});
     i = j;
   }
-  let html="";
+  let html="<tr><th>Name</th><th>Attendance</th><th>Notes</th></tr>";
   for (let i = 0; i < merged.length; i++){
-    for (let j = 0; j < merged[i].vids.length; j++){
-      html+=`<tr><td>${merged[i].start.split(" ")[0]}</td><td><div class="text" style=color:${(merged[i].states[j]=="noshowed")?"#850000;":((merged[i].states[j]=="completed")?"#00833D;":"#007BB4;")}>${merged[i].name}</div></td><th>`
-      html+=`<button class="checkIn" style=background-color:${(merged[i].states[j]=="noshowed")?"#850000;":"#00833D;"} id="${merged[i].vids[j]}" data-state="${merged[i].states[j]}" onclick='if (this.textContent === "Check In") {this.textContent = "No Show";this.style.backgroundColor="#850000";} else {this.textContent = "Check In";this.style.backgroundColor="#00833D";}'>${(merged[i].states[j]=="noshowed")?"No Show":"Check In"}</button><br>`;
-    };
-    html+=`</th><th><button class="checkIn" style="background-color:#007BB4;" onclick="location.href='https://mcdonaldswimschool.pike13.com/people/${merged[i].id}/notes';" id="${merged[i].id}">Notes</button></th></tr>`;
+    const attendanceButtons = merged[i].vids.map((vid, idx) => {
+      const state = merged[i].states[idx];
+      const isNoShow = state === "noshowed";
+      const selection = isNoShow ? "noshow" : "complete";
+      return `<button class="checkIn" data-visit="${vid}" data-state="${state}" data-selection="${selection}" style="background-color:${isNoShow ? "#850000" : "#00833D"};" onclick='const isNoShow = this.getAttribute("data-selection") !== "noshow"; this.textContent = isNoShow ? "No Show" : "Check In"; this.style.backgroundColor = isNoShow ? "#850000" : "#00833D"; this.setAttribute("data-selection", isNoShow ? "noshow" : "complete");'>${isNoShow ? "No Show" : "Check In"}</button>`;
+    }).join("");
+
+    html+=`<tr><td><div class="text">${merged[i].name}</div></td><td class="attendance-actions">${attendanceButtons}</td><td class="notes-cell"><button class="checkIn" style="background-color:#007BB4;" onclick="location.href='https://mcdonaldswimschool.pike13.com/people/${merged[i].id}/notes';" id="${merged[i].id}">Notes</button></td></tr>`;
   };
   console.log((merged.length>0)?html:"<tr><th>No Events</th></tr>");
   document.getElementById("myTable").innerHTML = (merged.length>0)?html:"<tr><th>No Events</th></tr>";
 };
 updateTable();
 document.getElementById("submit").addEventListener("click", (event) => {
+  const normalizeState = (s) => s === "noshowed" ? "noshow" : s;
   let attendance=[];
-  [...document.getElementById("myTable").rows].forEach(row=>{
-    attendance=attendance.concat(([...row.cells[2].querySelectorAll("button")].map(btn=>({vid:btn.id,state:btn.getAttribute("data-state"),type:btn.textContent}))));
+  [...document.getElementById("myTable").rows].slice(1).forEach(row=>{
+    attendance=attendance.concat(([...row.cells[1].querySelectorAll("button[data-visit]")].map(btn=>({vid:btn.getAttribute("data-visit"),state:btn.getAttribute("data-state"),selection:btn.getAttribute("data-selection")}))));
   });
   console.log(attendance);
   const desk="https://mcdonaldswimschool.pike13.com/api/v2/desk/";
@@ -72,7 +76,7 @@ document.getElementById("submit").addEventListener("click", (event) => {
       "Content-Type": "application/json"
     };
     // reset
-    for (const v of attendance.filter(v => (v.type == "Check In" ? "complete" : "noshow") != v.state && v.state != "registered")) {
+    for (const v of attendance.filter(v => v.selection != normalizeState(v.state) && normalizeState(v.state) != "registered")) {
       await fetch(`${desk}visits/${v.vid}`, {
         method: "PUT",
         headers,
@@ -80,15 +84,15 @@ document.getElementById("submit").addEventListener("click", (event) => {
       });
     }
     // update state
-    for (const v of attendance.filter(v => (v.type == "Check In" ? "complete" : "noshow") != v.state)) {
+    for (const v of attendance.filter(v => v.selection != normalizeState(v.state))) {
       await fetch(`${desk}visits/${v.vid}`, {
         method: "PUT",
         headers,
-        body: JSON.stringify({ visit: { state_event: v.type == "Check In" ? "complete" : "noshow" } })
+        body: JSON.stringify({ visit: { state_event: v.selection } })
       });
     }
     // punch no-shows
-    for (const v of attendance.filter(v => v.type == "No Show" && v.state != "noshow")) {
+    for (const v of attendance.filter(v => v.selection == "noshow" && normalizeState(v.state) != "noshow")) {
       await fetch(`${desk}punches`, {
         method: "POST",
         headers,
@@ -107,8 +111,8 @@ document.getElementById("submit").addEventListener("click", (event) => {
 });
 document.getElementById("reset").addEventListener("click", (event) => {
   let attendance=[];
-  [...document.getElementById("myTable").rows].forEach(row=>{
-    attendance=attendance.concat(([...row.cells[2].querySelectorAll("button")].map(btn=>({vid:btn.id,state:btn.getAttribute("data-state"),type:btn.textContent}))));
+  [...document.getElementById("myTable").rows].slice(1).forEach(row=>{
+    attendance=attendance.concat(([...row.cells[1].querySelectorAll("button[data-visit]")].map(btn=>({vid:btn.getAttribute("data-visit"),state:btn.getAttribute("data-state")}))));
   });
   console.log(attendance);
   const desk="https://mcdonaldswimschool.pike13.com/api/v2/desk/";
