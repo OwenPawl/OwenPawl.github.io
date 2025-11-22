@@ -80,14 +80,17 @@ function updateTable(schedule) {
   let html = "";
   tableRows.forEach((rowData, rowIndex) => {
     html += "<tr>";
-    rowData.forEach(cellData => {
+    rowData.forEach((cellData, cellIndex) => {
+      const tag = rowIndex === 0 ? "th" : "td";
+      const nameClass = rowIndex > 0 && cellIndex === 2 ? " class=\"name-cell\"" : "";
+
       let display;
       if (Array.isArray(cellData)) {
-        display = cellData.map(x => (x === null || x === undefined) ? "" : x.toString()).join("<br>");
+        display = cellData.map(x => (x === null || x === undefined) ? "" : x.toString()).join(", ");
       } else {
         display = (cellData === null || cellData === undefined) ? "" : cellData.toString();
       }
-      html += `<${rowIndex === 0 ? "th" : "td"}>${display}</${rowIndex === 0 ? "th" : "td"}>`;
+      html += `<${tag}${nameClass}>${display}</${tag}>`;
     });
     html += "</tr>";
   });
