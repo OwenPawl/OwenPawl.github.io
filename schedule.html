@@ -1,26 +1,17 @@
-<style>
-  .badge-new {
-  display: inline-block;
-  padding: 2px 4px;
-  font-size: 12px;font-family: 'Nunito', sans-serif; 
-  font-weight: bold;
-  color: green;
-  border: 1px solid #0a3;
-  background: rgba(0, 255, 120, 0.2);
-  border-radius: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  vertical-align: middle;
-  white-space: nowrap;
-}
-  table {
-  margin-left: auto;
-  margin-right: auto;
-  border-collapse: collapse; /* optional for cleaner look */
-}
-</style>
+<div class="screen-header">
+  <div>
+    <p class="pill">Today's lineup</p>
+    <h2 class="screen-title">Schedule</h2>
+  </div>
+  <span class="badge-new">Updated</span>
+</div>
 
-<table id="myTable" border="1"></table>
-<button style="font-size: 16px" onclick="load('attendance.html','attendance.js')" id="attendance">Attendance</button>
+<div class="table-wrapper">
+  <table class="data-table" id="myTable"></table>
+</div>
+
+<div style="margin-top: 14px; display: grid; gap: 10px;">
+  <button class="ghost" onclick="load('attendance.html','attendance.js')" id="attendance">Go to Attendance</button>
+</div>
 
 <!--<button onclick="load('navigation.html','getdata.js')" id="navigation">Go Back</button>-->
