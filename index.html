@@ -43,7 +43,10 @@
     .top-bar {
       display: flex;
       justify-content: flex-start;
-      padding: 6px 0 10px;
+      align-items: center;
+      gap: 10px;
+      padding: 4px 0 6px;
+      flex-wrap: wrap;
     }
 
     .date-controls {
@@ -86,8 +89,11 @@
       background: var(--card);
       box-shadow: var(--shadow);
       border-radius: var(--radius-lg);
-      padding: 12px 14px 18px;
+      padding: 10px 14px 16px;
       min-height: 60vh;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
     }
 
     /* Shared styles for loaded screens */
@@ -95,8 +101,22 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 6px;
+      flex-wrap: wrap;
+    }
+
+    .screen-header .title-group {
+      display: inline-flex;
+      align-items: center;
       gap: 8px;
-      margin-bottom: 12px;
+      min-width: 0;
+      flex: 1 1 auto;
+    }
+
+    .screen-header .ghost {
+      width: auto;
+      min-width: 180px;
     }
 
     .screen-title {
@@ -244,10 +264,11 @@
     .name-stack {
       display: grid;
       gap: 6px;
+      min-width: 0;
     }
 
     .name-cell {
-      display: inline-flex;
+      display: flex;
       align-items: center;
       gap: 6px;
       min-width: 0;
@@ -257,6 +278,8 @@
 
     .name-text {
       display: block;
+      flex: 1 1 auto;
+      min-width: 0;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
