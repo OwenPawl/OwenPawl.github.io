@@ -76,17 +76,13 @@ function updateTable(schedule) {
   }
   
   const table = document.getElementById("myTable");
-
+  
   let html = "";
   tableRows.forEach((rowData, rowIndex) => {
     html += "<tr>";
-    rowData.forEach((cellData, cellIndex) => {
+    rowData.forEach(cellData => {
       let display;
-      if (rowIndex > 0 && cellIndex === 2) {
-        const names = Array.isArray(cellData) ? cellData : [cellData];
-        const nameSpans = names.map(name => `<span class="schedule-name">${(name === null || name === undefined) ? "" : name.toString()}</span>`).join("");
-        display = `<div class="name-stack">${nameSpans}</div>`;
-      } else if (Array.isArray(cellData)) {
+      if (Array.isArray(cellData)) {
         display = cellData.map(x => (x === null || x === undefined) ? "" : x.toString()).join("<br>");
       } else {
         display = (cellData === null || cellData === undefined) ? "" : cellData.toString();
