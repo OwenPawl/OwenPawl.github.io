@@ -1,7 +1,5 @@
-const dateInput = document.getElementById("dateInput");
 document.getElementById("dateInput").addEventListener("change", (event) => {
   document.getElementById("myTable").innerHTML = "<tr><th>Loading...</th></tr>";
-  updateDateBadge();
 });
 window.addEventListener("scheduleUpdated", (e) => {
   updateTable(e.detail);
@@ -19,37 +17,6 @@ function normalizeSchedule(scheduleData) {
   return [];
 }
 
-function normalizeState(state) {
-  if (!state) return "registered";
-  const lower = String(state).toLowerCase();
-  if (lower.includes("noshow")) return "noshow";
-  if (lower.includes("complete")) return "complete";
-  return lower;
-}
-
-function updateDateBadge() {
-  const badge = document.getElementById("dateBadge");
-  if (!badge || !dateInput) return;
-  const selected = dateInput.value || new Date().toLocaleDateString("en-CA");
-  const formatted = new Intl.DateTimeFormat("en-US", {
-    weekday: "short",
-    month: "short",
-    day: "numeric"
-  }).format(new Date(selected));
-  badge.textContent = formatted;
-}
-
-function updateTable(schedule){
-  updateDateBadge();
-  const data = normalizeSchedule(schedule)
-    .filter(item => (item[2]!="late_canceled"&&![11485475,11559838,13602611,13167161,""].includes(item[0])))
-    .map(i => i.slice(0,7))
-    .sort((a, b) => {
-      const startDiff = new Date(a[3]) - new Date(b[3]);
-      if (startDiff !== 0) return startDiff;
-      if (a[0] !== b[0]) return a[0] < b[0] ? -1 : 1;
-      return (a[1] ?? 0) - (b[1] ?? 0);
-    });
 function updateTable(schedule){
   const data = normalizeSchedule(schedule)
     .filter(item => (item[2]!="late_canceled"&&![11485475,11559838,13602611,13167161,""].includes(item[0])))
@@ -59,18 +26,11 @@ function updateTable(schedule){
     return;
   }
   const merged = [];
-  const formatName = (s => {
-    const parts = s.trim().split(/\s+/);
-    const tokens = parts.length > 1 ? [parts[0], parts[parts.length - 1]] : [parts[0]];
-    return tokens
-      .map(x => x[0].toUpperCase() + (/^[A-Z]+$/.test(x) ? x.slice(1).toLowerCase() : x.slice(1)))
-      .join(" ");
-  });
   for (let i = 0; i < data.length; ) {
-    const [id, vid, state, start, end, name, level] = data[i];
+    const [id,vid,state, start, end, name, level] = data[i];
     let blockEnd = end;
     let vids = [vid];
-    let states = [normalizeState(state)];
+    let states=[state];
     let j = i + 1;
     while (
       j < data.length &&
@@ -79,47 +39,38 @@ function updateTable(schedule){
     ) {
       blockEnd = data[j][4];
       vids.push(data[j][1]);
-      states.push(normalizeState(data[j][2]));
+      states.push(data[j][2]);
       j++;
     }
-    merged.push({ name: formatName(name), level, id, vids, states });
+    merged.push({start,end: blockEnd,name: (s =>(w = s.trim().split(/\s+/),(w.length > 1 ? [w[0], w[w.length-1]] : [w[0]]).map(x => x[0].toUpperCase() + (/^[A-Z]+$/.test(x) ? x.slice(1).toLowerCase() : x.slice(1))).join(" ")))(name),level,id,vids,states});
     i = j;
   }
-  let html="";
-  for (let i = 0; i < merged.length; i++){
-    const suffix = merged[i].vids.length > 1;
-    const checkButtons = merged[i].vids.map((vid, idx) => {
-      const originalState = merged[i].states[idx];
-      const desiredState = originalState === "noshow" ? "noshow" : "complete";
-      const labelSuffix = suffix ? ` ${idx + 1}` : "";
-      const isNoShow = desiredState === "noshow";
-      const buttonLabel = `${isNoShow ? "No Show" : "Check In"}${labelSuffix}`;
-      const tone = isNoShow ? "#850000" : "#00833D";
-      return `<button class="checkIn" data-original-state="${originalState}" data-desired="${desiredState}" data-suffix="${labelSuffix}" style="background-color:${tone};" id="${vid}" aria-label="${buttonLabel}">${buttonLabel}</button>`;
-    }).join("");
-    html+=`<tr><td class="name-cell"><div class="text">${merged[i].name}</div>${merged[i].level ? `<div class="muted">${merged[i].level}</div>` : ""}</td><td><div class="check-stack">${checkButtons}</div></td><td class="notes-cell"><button class="checkIn" style="background-color:#007BB4;" onclick="location.href='https://mcdonaldswimschool.pike13.com/people/${merged[i].id}/notes';" id="${merged[i].id}">Notes</button></td></tr>`;
+  const getStateColor = (states) => {
+    if (states.some(state => state === "noshowed")) return "#850000";
+    if (states.some(state => state === "completed")) return "#00833D";
+    return "#0b2a3c";
   };
-  const markup = (merged.length>0)?html:"<tr><th>No Events</th></tr>";
-  document.getElementById("myTable").innerHTML = markup;
-  document.querySelectorAll(".checkIn[data-desired]").forEach(btn => {
-    btn.addEventListener("click", () => {
-      const next = btn.dataset.desired === "noshow" ? "complete" : "noshow";
-      const labelSuffix = btn.dataset.suffix || "";
-      btn.dataset.desired = next;
-      btn.style.backgroundColor = next === "noshow" ? "#850000" : "#00833D";
-      btn.textContent = `${next === "noshow" ? "No Show" : "Check In"}${labelSuffix || ""}`;
-    });
-  });
+
+  let html="<tr><th>Name</th><th>Attendance</th><th>Notes</th></tr>";
+  for (let i = 0; i < merged.length; i++){
+    const attendanceButtons = merged[i].vids.map((vid, idx) => {
+      const state = merged[i].states[idx];
+      const isNoShow = state === "noshowed";
+      const selection = isNoShow ? "noshow" : "complete";
+      return `<button class="checkIn" data-visit="${vid}" data-state="${state}" data-selection="${selection}" style="background-color:${isNoShow ? "#850000" : "#00833D"};" onclick='const isNoShow = this.getAttribute("data-selection") !== "noshow"; this.textContent = isNoShow ? "No Show" : "Check In"; this.style.backgroundColor = isNoShow ? "#850000" : "#00833D"; this.setAttribute("data-selection", isNoShow ? "noshow" : "complete");'>${isNoShow ? "No Show" : "Check In"}</button>`;
+    }).join("");
+
+    html+=`<tr><td><div class="text" style="color:${getStateColor(merged[i].states)};">${merged[i].name}</div></td><td class="attendance-actions">${attendanceButtons}</td><td class="notes-cell"><button class="checkIn" style="background-color:#007BB4;" onclick="location.href='https://mcdonaldswimschool.pike13.com/people/${merged[i].id}/notes';" id="${merged[i].id}">Notes</button></td></tr>`;
+  };
+  console.log((merged.length>0)?html:"<tr><th>No Events</th></tr>");
+  document.getElementById("myTable").innerHTML = (merged.length>0)?html:"<tr><th>No Events</th></tr>";
 };
 updateTable();
 document.getElementById("submit").addEventListener("click", (event) => {
+  const normalizeState = (s) => s === "noshowed" ? "noshow" : s;
   let attendance=[];
-  [...document.getElementById("myTable").rows].forEach(row=>{
-    attendance = attendance.concat(([...row.querySelectorAll(".checkIn[data-desired]")].map(btn=>({
-      vid: btn.id,
-      original: normalizeState(btn.getAttribute("data-original-state")),
-      desired: normalizeState(btn.getAttribute("data-desired"))
-    }))));
+  [...document.getElementById("myTable").rows].slice(1).forEach(row=>{
+    attendance=attendance.concat(([...row.cells[1].querySelectorAll("button[data-visit]")].map(btn=>({vid:btn.getAttribute("data-visit"),state:btn.getAttribute("data-state"),selection:btn.getAttribute("data-selection")}))));
   });
   console.log(attendance);
   const desk="https://mcdonaldswimschool.pike13.com/api/v2/desk/";
@@ -130,9 +81,8 @@ document.getElementById("submit").addEventListener("click", (event) => {
       "Authorization": `Bearer ${localStorage.getItem("access_token")}`,
       "Content-Type": "application/json"
     };
-    const stateEvent = (state) => state === "noshow" ? "noshow" : "complete";
-    const needsReset = attendance.filter(v => v.original !== v.desired && v.original !== "registered");
-    for (const v of needsReset) {
+    // reset
+    for (const v of attendance.filter(v => v.selection != normalizeState(v.state) && normalizeState(v.state) != "registered")) {
       await fetch(`${desk}visits/${v.vid}`, {
         method: "PUT",
         headers,
@@ -140,15 +90,15 @@ document.getElementById("submit").addEventListener("click", (event) => {
       });
     }
     // update state
-    for (const v of attendance.filter(v => v.original !== v.desired)) {
+    for (const v of attendance.filter(v => v.selection != normalizeState(v.state))) {
       await fetch(`${desk}visits/${v.vid}`, {
         method: "PUT",
         headers,
-        body: JSON.stringify({ visit: { state_event: stateEvent(v.desired) } })
+        body: JSON.stringify({ visit: { state_event: v.selection } })
       });
     }
     // punch no-shows
-    for (const v of attendance.filter(v => v.desired === "noshow" && v.original !== "noshow")) {
+    for (const v of attendance.filter(v => v.selection == "noshow" && normalizeState(v.state) != "noshow")) {
       await fetch(`${desk}punches`, {
         method: "POST",
         headers,
@@ -167,11 +117,8 @@ document.getElementById("submit").addEventListener("click", (event) => {
 });
 document.getElementById("reset").addEventListener("click", (event) => {
   let attendance=[];
-  [...document.getElementById("myTable").rows].forEach(row=>{
-    attendance = attendance.concat(([...row.querySelectorAll(".checkIn[data-desired]")].map(btn=>({
-      vid: btn.id,
-      original: normalizeState(btn.getAttribute("data-original-state"))
-    }))));
+  [...document.getElementById("myTable").rows].slice(1).forEach(row=>{
+    attendance=attendance.concat(([...row.cells[1].querySelectorAll("button[data-visit]")].map(btn=>({vid:btn.getAttribute("data-visit"),state:btn.getAttribute("data-state")}))));
   });
   console.log(attendance);
   const desk="https://mcdonaldswimschool.pike13.com/api/v2/desk/";
