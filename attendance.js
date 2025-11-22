@@ -45,6 +45,12 @@ function updateTable(schedule){
     merged.push({start,end: blockEnd,name: (s =>(w = s.trim().split(/\s+/),(w.length > 1 ? [w[0], w[w.length-1]] : [w[0]]).map(x => x[0].toUpperCase() + (/^[A-Z]+$/.test(x) ? x.slice(1).toLowerCase() : x.slice(1))).join(" ")))(name),level,id,vids,states});
     i = j;
   }
+  const getStateColor = (states) => {
+    if (states.some(state => state === "noshowed")) return "#850000";
+    if (states.some(state => state === "completed")) return "#00833D";
+    return "#0b2a3c";
+  };
+
   let html="<tr><th>Name</th><th>Attendance</th><th>Notes</th></tr>";
   for (let i = 0; i < merged.length; i++){
     const attendanceButtons = merged[i].vids.map((vid, idx) => {
@@ -54,7 +60,7 @@ function updateTable(schedule){
       return `<button class="checkIn" data-visit="${vid}" data-state="${state}" data-selection="${selection}" style="background-color:${isNoShow ? "#850000" : "#00833D"};" onclick='const isNoShow = this.getAttribute("data-selection") !== "noshow"; this.textContent = isNoShow ? "No Show" : "Check In"; this.style.backgroundColor = isNoShow ? "#850000" : "#00833D"; this.setAttribute("data-selection", isNoShow ? "noshow" : "complete");'>${isNoShow ? "No Show" : "Check In"}</button>`;
     }).join("");
 
-    html+=`<tr><td><div class="text">${merged[i].name}</div></td><td class="attendance-actions">${attendanceButtons}</td><td class="notes-cell"><button class="checkIn" style="background-color:#007BB4;" onclick="location.href='https://mcdonaldswimschool.pike13.com/people/${merged[i].id}/notes';" id="${merged[i].id}">Notes</button></td></tr>`;
+    html+=`<tr><td><div class="text" style="color:${getStateColor(merged[i].states)};">${merged[i].name}</div></td><td class="attendance-actions">${attendanceButtons}</td><td class="notes-cell"><button class="checkIn" style="background-color:#007BB4;" onclick="location.href='https://mcdonaldswimschool.pike13.com/people/${merged[i].id}/notes';" id="${merged[i].id}">Notes</button></td></tr>`;
   };
   console.log((merged.length>0)?html:"<tr><th>No Events</th></tr>");
   document.getElementById("myTable").innerHTML = (merged.length>0)?html:"<tr><th>No Events</th></tr>";
