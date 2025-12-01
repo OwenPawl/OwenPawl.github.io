@@ -45,13 +45,7 @@ function updateTable(schedule){
     merged.push({start,end: blockEnd,name: (s =>(w = s.trim().split(/\s+/),(w.length > 1 ? [w[0], w[w.length-1]] : [w[0]]).map(x => x[0].toUpperCase() + (/^[A-Z]+$/.test(x) ? x.slice(1).toLowerCase() : x.slice(1))).join(" ")))(name),level,id,vids,states});
     i = j;
   }
-  const getStateColor = (states) => {
-    if (states.some(state => state === "noshowed")) return "#850000";
-    if (states.some(state => state === "completed")) return "#00833D";
-    return "#0b2a3c";
-  };
-
-  let html="<tr><th>Name</th><th>Attendance</th><th>Notes</th></tr>";
+  let html="";
   for (let i = 0; i < merged.length; i++){
     const color = (merged[i].states[0]=="noshowed")?"#850000;":((merged[i].states[0]=="completed")?"#00833D;":"#007BB4;");
     html+=`<tr><td><div class="text" style=color:${color}>${merged[i].name}</div></td><td class="actions-cell checkins-cell"><div class="checkin-stack">`;
@@ -65,7 +59,6 @@ function updateTable(schedule){
 };
 updateTable();
 document.getElementById("submit").addEventListener("click", (event) => {
-  const normalizeState = (s) => s === "noshowed" ? "noshow" : s;
   let attendance=[];
   [...document.getElementById("myTable").rows].forEach(row=>{
     attendance=attendance.concat(([...row.querySelectorAll("button[data-role='checkin']")].map(btn=>({vid:btn.id,state:btn.getAttribute("data-state"),type:btn.textContent}))));
@@ -80,7 +73,7 @@ document.getElementById("submit").addEventListener("click", (event) => {
       "Content-Type": "application/json"
     };
     // reset
-    for (const v of attendance.filter(v => v.selection != normalizeState(v.state) && normalizeState(v.state) != "registered")) {
+    for (const v of attendance.filter(v => (v.type == "Check In" ? "complete" : "noshow") != v.state && v.state != "registered")) {
       await fetch(`${desk}visits/${v.vid}`, {
         method: "PUT",
         headers,
@@ -88,15 +81,15 @@ document.getElementById("submit").addEventListener("click", (event) => {
       });
     }
     // update state
-    for (const v of attendance.filter(v => v.selection != normalizeState(v.state))) {
+    for (const v of attendance.filter(v => (v.type == "Check In" ? "complete" : "noshow") != v.state)) {
       await fetch(`${desk}visits/${v.vid}`, {
         method: "PUT",
         headers,
-        body: JSON.stringify({ visit: { state_event: v.selection } })
+        body: JSON.stringify({ visit: { state_event: v.type == "Check In" ? "complete" : "noshow" } })
       });
     }
     // punch no-shows
-    for (const v of attendance.filter(v => v.selection == "noshow" && normalizeState(v.state) != "noshow")) {
+    for (const v of attendance.filter(v => v.type == "No Show" && v.state != "noshow")) {
       await fetch(`${desk}punches`, {
         method: "POST",
         headers,
