@@ -47,7 +47,7 @@ function updateTable(schedule){
   }
   const getStateColor = (states) => {
     if (states.some(state => state === "noshowed")) return "#850000";
-    if (states.some(state => state === "completed")) return "#00833D";
+    if (states.every(state => state === "completed")) return "#00833D";
     return "#0b2a3c";
   };
 
