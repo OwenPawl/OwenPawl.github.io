@@ -5,6 +5,22 @@ window.addEventListener("scheduleUpdated", (e) => {
   updateTable(e.detail);
 });
 
+function normalizeStateValue(state) {
+  const normalized = (state || "").toString().trim().toLowerCase();
+  if (normalized === "noshowed" || normalized === "noshow") return "noshow";
+  if (normalized === "completed" || normalized === "complete") return "complete";
+  return normalized;
+}
+
+function toggleAttendance(button) {
+  const currentSelection = normalizeStateValue(button.getAttribute("data-selection"));
+  const newSelection = currentSelection === "noshow" ? "complete" : "noshow";
+
+  button.setAttribute("data-selection", newSelection);
+  button.textContent = newSelection === "noshow" ? "No Show" : "Check In";
+  button.style.backgroundColor = newSelection === "noshow" ? "#850000" : "#00833D";
+}
+
 function normalizeSchedule(scheduleData) {
   if (Array.isArray(scheduleData)) return scheduleData;
   if (typeof scheduleData === "string" && scheduleData.trim()) {
@@ -54,10 +70,9 @@ function updateTable(schedule){
   let html="<tr><th>Name</th><th>Attendance</th><th>Notes</th></tr>";
   for (let i = 0; i < merged.length; i++){
     const attendanceButtons = merged[i].vids.map((vid, idx) => {
-      const state = merged[i].states[idx];
-      const isNoShow = state === "noshowed";
-      const selection = isNoShow ? "noshow" : "complete";
-      return `<button class="checkIn" data-visit="${vid}" data-state="${state}" data-selection="${selection}" style="background-color:${isNoShow ? "#850000" : "#00833D"};" onclick='const isNoShow = this.getAttribute("data-selection") !== "noshow"; this.textContent = isNoShow ? "No Show" : "Check In"; this.style.backgroundColor = isNoShow ? "#850000" : "#00833D"; this.setAttribute("data-selection", isNoShow ? "noshow" : "complete");'>${isNoShow ? "No Show" : "Check In"}</button>`;
+      const state = normalizeStateValue(merged[i].states[idx]);
+      const selection = state === "noshow" ? "noshow" : "complete";
+      return `<button class="checkIn" data-visit="${vid}" data-state="${state}" data-selection="${selection}" style="background-color:${selection === "noshow" ? "#850000" : "#00833D"};" onclick="toggleAttendance(this)">${selection === "noshow" ? "No Show" : "Check In"}</button>`;
     }).join("");
 
     html+=`<tr><td><div class="text" style="color:${getStateColor(merged[i].states)};">${merged[i].name}</div></td><td class="attendance-actions">${attendanceButtons}</td><td class="notes-cell"><button class="checkIn" style="background-color:#007BB4;" onclick="location.href='https://mcdonaldswimschool.pike13.com/people/${merged[i].id}/notes';" id="${merged[i].id}">Notes</button></td></tr>`;
@@ -67,10 +82,13 @@ function updateTable(schedule){
 };
 updateTable();
 document.getElementById("submit").addEventListener("click", (event) => {
-  const normalizeState = (s) => s === "noshowed" ? "noshow" : s;
   let attendance=[];
   [...document.getElementById("myTable").rows].slice(1).forEach(row=>{
-    attendance=attendance.concat(([...row.cells[1].querySelectorAll("button[data-visit]")].map(btn=>({vid:btn.getAttribute("data-visit"),state:btn.getAttribute("data-state"),selection:btn.getAttribute("data-selection")}))));
+    attendance=attendance.concat(([...row.cells[1].querySelectorAll("button[data-visit]")].map(btn=>({
+      vid: btn.getAttribute("data-visit"),
+      state: normalizeStateValue(btn.getAttribute("data-state")),
+      selection: normalizeStateValue(btn.getAttribute("data-selection")),
+    }))));
   });
   console.log(attendance);
   const desk="https://mcdonaldswimschool.pike13.com/api/v2/desk/";
@@ -82,7 +100,7 @@ document.getElementById("submit").addEventListener("click", (event) => {
       "Content-Type": "application/json"
     };
     // reset
-    for (const v of attendance.filter(v => v.selection != normalizeState(v.state) && normalizeState(v.state) != "registered")) {
+    for (const v of attendance.filter(v => v.selection !== v.state && v.state !== "registered")) {
       await fetch(`${desk}visits/${v.vid}`, {
         method: "PUT",
         headers,
@@ -90,7 +108,7 @@ document.getElementById("submit").addEventListener("click", (event) => {
       });
     }
     // update state
-    for (const v of attendance.filter(v => v.selection != normalizeState(v.state))) {
+    for (const v of attendance.filter(v => v.selection !== v.state)) {
       await fetch(`${desk}visits/${v.vid}`, {
         method: "PUT",
         headers,
@@ -98,7 +116,7 @@ document.getElementById("submit").addEventListener("click", (event) => {
       });
     }
     // punch no-shows
-    for (const v of attendance.filter(v => v.selection == "noshow" && normalizeState(v.state) != "noshow")) {
+    for (const v of attendance.filter(v => v.selection === "noshow" && v.state !== "noshow")) {
       await fetch(`${desk}punches`, {
         method: "POST",
         headers,
@@ -118,13 +136,17 @@ document.getElementById("submit").addEventListener("click", (event) => {
 document.getElementById("reset").addEventListener("click", (event) => {
   let attendance=[];
   [...document.getElementById("myTable").rows].slice(1).forEach(row=>{
-    attendance=attendance.concat(([...row.cells[1].querySelectorAll("button[data-visit]")].map(btn=>({vid:btn.getAttribute("data-visit"),state:btn.getAttribute("data-state")}))));
+    attendance=attendance.concat(([...row.cells[1].querySelectorAll("button[data-visit]")].map(btn=>({
+      vid: btn.getAttribute("data-visit"),
+      state: normalizeStateValue(btn.getAttribute("data-state")),
+    }))));
   });
   console.log(attendance);
   const desk="https://mcdonaldswimschool.pike13.com/api/v2/desk/";
   async function Reset(){
     document.getElementById("myTable").innerHTML = "<tr><th>Attendance Reset!</th></tr>";
-    await Promise.allSettled(attendance.map(visit=>fetch(desk+`visits/${visit.vid}`,{body:JSON.stringify({"visit":{"state_event":"reset"}}),method:"PUT",headers: {"Authorization": `Bearer ${localStorage.getItem("access_token")}`,"Content-Type": "application/json"},redirect: "follow"})));
+    const visitsToReset = attendance.filter(visit => visit.state && visit.state !== "registered");
+    await Promise.allSettled(visitsToReset.map(visit=>fetch(desk+`visits/${visit.vid}`,{body:JSON.stringify({"visit":{"state_event":"reset"}}),method:"PUT",headers: {"Authorization": `Bearer ${localStorage.getItem("access_token")}`,"Content-Type": "application/json"},redirect: "follow"})));
     await new Promise(resolve => setTimeout(resolve, 500));
     document.getElementById("dateInput").dispatchEvent(new Event("change"));
   };
