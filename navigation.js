@@ -1,21 +1,25 @@
-const tabs = {
+const routes = {
   schedule: { file: "schedule.html", script: "table_populator.js" },
-  attendance: { file: "attendance.html", script: "attendance.js" },
+  attendance: { file: "attendance.html", script: "attendance.js" }
 };
 
-let activeScript = null;
+const routeByFile = Object.entries(routes).reduce((map, [key, value]) => {
+  map[value.file] = key;
+  return map;
+}, {});
 
-function setActiveTab(key) {
-  document.querySelectorAll(".tab-button").forEach((button) => {
-    button.classList.toggle("active", button.dataset.view === key);
+function setActiveNav(target) {
+  document.querySelectorAll(".nav-btn").forEach(btn => {
+    btn.classList.toggle("active", btn.dataset.target === target);
   });
 }
 
-function load(file, scriptFile, activeKey) {
+function load(file, scriptFile) {
   fetch(file)
     .then((r) => r.text())
     .then((html) => {
       document.getElementById("app").innerHTML = html;
+      setActiveNav(routeByFile[file]);
 
       if (activeScript) {
         activeScript.remove();
@@ -34,14 +38,16 @@ function load(file, scriptFile, activeKey) {
     });
 }
 
+function navigate(target) {
+  const route = routes[target];
+  if (!route) return;
+  load(route.file, route.script);
+}
+
 document.addEventListener("DOMContentLoaded", () => {
-  document.querySelectorAll(".tab-button").forEach((button) => {
-    button.addEventListener("click", () => {
-      const view = button.dataset.view;
-      const config = tabs[view];
-      load(config.file, config.script, view);
-    });
+  document.querySelectorAll(".nav-btn").forEach(btn => {
+    btn.addEventListener("click", () => navigate(btn.dataset.target));
   });
 
-  load(tabs.schedule.file, tabs.schedule.script, "schedule");
+  navigate("schedule");
 });

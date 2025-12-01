@@ -45,8 +45,9 @@ function updateTable(schedule) {
     if (state == "late_canceled"||state=="canceled"){
       merged.push({ start, end: blockEnd, name: "CANCELED", level: "&#12644;", New: false, age: "&#12644;" });
     } else {
-      merged.push({ start, end: blockEnd, name: (s =>(w = s.trim().split(/\s+/),(w.length > 1 ? [w[0], w[w.length-1]] : [w[0]]).map(x => x[0].toUpperCase() + (/^[A-Z]+$/.test(x) ? x.slice(1).toLowerCase() : x.slice(1))).join(" ")))(name).concat((New)?'<span class="badge-new">NEW</span>':''), level, age });
-      
+      const formattedName = (s =>(w = s.trim().split(/\s+/),(w.length > 1 ? [w[0], w[w.length-1]] : [w[0]]).map(x => x[0].toUpperCase() + (/^[A-Z]+$/.test(x) ? x.slice(1).toLowerCase() : x.slice(1))).join(" ")))(name);
+      const nameWithBadge = New ? `<span class="badge-new">NEW</span> ${formattedName}` : formattedName;
+      merged.push({ start, end: blockEnd, name: nameWithBadge, level, age });
     }
     i = j;
   }
@@ -80,12 +81,16 @@ function updateTable(schedule) {
   let html = "";
   tableRows.forEach((rowData, rowIndex) => {
     html += "<tr>";
-    rowData.forEach(cellData => {
+    rowData.forEach((cellData, cellIndex) => {
       let display;
       if (Array.isArray(cellData)) {
-        display = cellData.map(x => (x === null || x === undefined) ? "" : x.toString()).join("<br>");
+        display = cellData.map(x => {
+          const content = (x === null || x === undefined) ? "" : x.toString();
+          return cellIndex === 2 ? `<span class="name-text">${content}</span>` : content;
+        }).join(cellIndex === 2 ? "" : "<br>");
       } else {
-        display = (cellData === null || cellData === undefined) ? "" : cellData.toString();
+        const content = (cellData === null || cellData === undefined) ? "" : cellData.toString();
+        display = (cellIndex === 2 && rowIndex !== 0) ? `<span class="name-text">${content}</span>` : content;
       }
       html += `<${rowIndex === 0 ? "th" : "td"}>${display}</${rowIndex === 0 ? "th" : "td"}>`;
     });
