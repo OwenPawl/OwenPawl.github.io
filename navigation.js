@@ -16,17 +16,25 @@ function setActiveNav(target) {
 
 function load(file, scriptFile) {
   fetch(file)
-    .then(r => r.text())
-    .then(html => {
+    .then((r) => r.text())
+    .then((html) => {
       document.getElementById("app").innerHTML = html;
       setActiveNav(routeByFile[file]);
+
+      if (activeScript) {
+        activeScript.remove();
+        activeScript = null;
+      }
 
       if (scriptFile) {
         const script = document.createElement("script");
         script.src = scriptFile;
         script.defer = true;
         document.body.appendChild(script);
+        activeScript = script;
       }
+
+      if (activeKey) setActiveTab(activeKey);
     });
 }
 
