@@ -1,26 +1,10 @@
-document.getElementById("dateInput").addEventListener("change", (event) => {
-  document.getElementById("myTable").innerHTML = "<tr><th>Loading...</th></tr>";
+document.getElementById("dateInput").addEventListener("change", () => {
+  showLoading("myTable");
 });
 
 window.addEventListener("scheduleUpdated", (e) => {
   updateTable(e.detail);
 });
-
-function normalizeSchedule(scheduleData) {
-  if (Array.isArray(scheduleData)) return scheduleData;
-  if (typeof scheduleData === "string" && scheduleData.trim()) {
-    try {
-      return JSON.parse(scheduleData);
-    } catch (e) {
-      console.error("Unable to parse schedule", e);
-    }
-  }
-  const stored = sessionStorage.getItem("schedule");
-  if (stored) {
-    try { return JSON.parse(stored); } catch (e) { console.error("Unable to parse stored schedule", e); }
-  }
-  return [];
-}
 
 function updateTable(schedule) {
   const data = normalizeSchedule(schedule);
@@ -30,7 +14,7 @@ function updateTable(schedule) {
   }
   const merged = [];
   for (let i = 0; i < data.length; ) {
-    const [id,,state, start, end, name, level, New, age] = data[i];
+    const [id,,state, start, end, name, level, isNew, age] = data[i];
     let blockEnd = end;
     let j = i + 1;
     while (
@@ -43,20 +27,22 @@ function updateTable(schedule) {
       j++;
     }
     if (state == "late_canceled"||state=="canceled"){
-      merged.push({ start, end: blockEnd, name: "CANCELED", level: "&#12644;", New: false, age: "&#12644;" });
+      merged.push({ start, end: blockEnd, name: "CANCELED", level: "&#12644;", isNew: false, age: "&#12644;" });
     } else {
-      merged.push({ start, end: blockEnd, name: (s =>(w = s.trim().split(/\s+/),(w.length > 1 ? [w[0], w[w.length-1]] : [w[0]]).map(x => x[0].toUpperCase() + (/^[A-Z]+$/.test(x) ? x.slice(1).toLowerCase() : x.slice(1))).join(" ")))(name).concat((New)?'<span class="badge-new">NEW</span>':''), level, age });
-      
+      const formattedName = formatName(name);
+      const displayName = isNew ? `${formattedName} <span class="badge-new">NEW</span>` : formattedName;
+      merged.push({ start, end: blockEnd, name: displayName, level, isNew, age });
+
     }
     i = j;
   }
-  
+
   // 2. Group by start time
   const groups = merged.reduce((acc, r) => {
     (acc[r.start] ??= []).push(r);
     return acc;
   }, {});
-  
+
   // 3. Build final output
   const output = Object.entries(groups).map(([start, rows]) => {
     // duration = minutes from first start to last end (if multiple)
@@ -74,9 +60,9 @@ function updateTable(schedule) {
   } else {
     tableRows = [["Start", "Min.", "Name", "Lvl", "Age"], ...output];
   }
-  
+
   const table = document.getElementById("myTable");
-  
+
   let html = "";
   tableRows.forEach((rowData, rowIndex) => {
     html += "<tr>";
@@ -91,8 +77,8 @@ function updateTable(schedule) {
     });
     html += "</tr>";
   });
-  
+
   console.log(html);
-  table.innerHTML = html; 
+  table.innerHTML = html;
 };
 updateTable(sessionStorage.getItem("schedule"));

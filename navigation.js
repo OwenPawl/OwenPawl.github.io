@@ -1,47 +1,27 @@
-const tabs = {
-  schedule: { file: "schedule.html", script: "table_populator.js" },
-  attendance: { file: "attendance.html", script: "attendance.js" },
-};
+const tabs = { schedule: { file: "schedule.html", script: "table_populator.js" }, attendance: { file: "attendance.html", script: "attendance.js" } };
+let activeScript = null, utilsPromise = null;
+const setActiveTab = (key) => document.querySelectorAll(".tab-button").forEach((btn) => btn.classList.toggle("active", btn.dataset.view === key));
+const ensureUtilsLoaded = () => utilsPromise ||= new Promise((resolve, reject) => {
+  const script = Object.assign(document.createElement("script"), { src: "schedule_utils.js", defer: true, onload: resolve, onerror: reject });
+  document.body.appendChild(script);
+});
 
-let activeScript = null;
-
-function setActiveTab(key) {
-  document.querySelectorAll(".tab-button").forEach((button) => {
-    button.classList.toggle("active", button.dataset.view === key);
-  });
-}
-
-function load(file, scriptFile, activeKey) {
-  fetch(file)
-    .then((r) => r.text())
-    .then((html) => {
-      document.getElementById("app").innerHTML = html;
-
-      if (activeScript) {
-        activeScript.remove();
-        activeScript = null;
-      }
-
-      if (scriptFile) {
-        const script = document.createElement("script");
-        script.src = scriptFile;
-        script.defer = true;
-        document.body.appendChild(script);
-        activeScript = script;
-      }
-
-      if (activeKey) setActiveTab(activeKey);
-    });
+async function load(file, scriptFile, activeKey) {
+  await ensureUtilsLoaded();
+  document.getElementById("app").innerHTML = await fetch(file).then((r) => r.text());
+  if (activeScript) activeScript.remove();
+  if (scriptFile) {
+    activeScript = document.createElement("script");
+    Object.assign(activeScript, { src: scriptFile, defer: true });
+    document.body.appendChild(activeScript);
+  }
+  if (activeKey) setActiveTab(activeKey);
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  document.querySelectorAll(".tab-button").forEach((button) => {
-    button.addEventListener("click", () => {
-      const view = button.dataset.view;
-      const config = tabs[view];
-      load(config.file, config.script, view);
-    });
-  });
-
+  document.querySelectorAll(".tab-button").forEach((button) => button.addEventListener("click", () => {
+    const view = button.dataset.view, config = tabs[view];
+    load(config.file, config.script, view);
+  }));
   load(tabs.schedule.file, tabs.schedule.script, "schedule");
 });
