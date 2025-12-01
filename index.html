@@ -6,7 +6,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
   <style>
     @import url("https://fonts.googleapis.com/css2?family=Nunito:wght@600;700&display=swap");
-    @import url("https://unpkg.com/@phosphor-icons/web@2.1.1/src/css/phosphor.css");
 
     :root {
       --blue: #007bb4;
@@ -22,8 +21,6 @@
       --card: #ffffff;
       --shadow: 0 10px 30px rgba(0, 59, 92, 0.12);
       --radius-lg: 18px;
-      --nav-height: 74px;
-      --content-bottom-pad: calc(var(--nav-height) + 104px);
     }
 
     * { box-sizing: border-box; }
@@ -38,9 +35,7 @@
       min-height: 100vh;
       display: flex;
       justify-content: center;
-      padding: 10px;
-      padding-bottom: calc(var(--nav-height) + 14px);
-      overscroll-behavior-y: contain;
+      padding: 12px;
     }
 
     .app-shell {
@@ -105,7 +100,7 @@
       background: var(--card);
       box-shadow: var(--shadow), 0 0 0 1px rgba(0, 123, 180, 0.05);
       border-radius: var(--radius-lg);
-      padding: 14px 12px var(--content-bottom-pad);
+      padding: 12px 14px 18px;
       min-height: 60vh;
       display: flex;
       flex-direction: column;
@@ -282,71 +277,50 @@
     .table-wrapper {
       background: linear-gradient(180deg, #f5faff, #f0f6fb);
       border-radius: var(--radius-lg);
-      padding: 6px 6px 4px;
+      padding: 8px;
       box-shadow: inset 0 0 0 1px rgba(0, 123, 180, 0.05);
       overflow-x: auto;
-    }
-
-    .name-text {
-      display: block;
-      width: 100%;
-      max-width: min(360px, 60vw);
-      min-width: 0;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      word-break: normal;
-    }
-
-    .schedule-table {
-      table-layout: auto;
-      width: 100%;
-    }
-
-    .schedule-table th,
-    .schedule-table td {
-      overflow: hidden;
-    }
-
-    .schedule-table th:nth-child(1),
-    .schedule-table td:nth-child(1) {
-      width: clamp(56px, 8vw, 72px);
-      white-space: nowrap;
-    }
-
-    .schedule-table th:nth-child(2),
-    .schedule-table td:nth-child(2) {
-      width: clamp(52px, 7.5vw, 68px);
-      white-space: nowrap;
-    }
-
-    .schedule-table th:nth-child(4),
-    .schedule-table td:nth-child(4),
-    .schedule-table th:nth-child(5),
-    .schedule-table td:nth-child(5) {
-      width: clamp(52px, 8vw, 66px);
-      white-space: nowrap;
-    }
-
-    .schedule-table th:nth-child(3),
-    .schedule-table td:nth-child(3) {
-      min-width: 0;
-      width: 100%;
-      max-width: min(360px, 60vw);
     }
 
     .text {
       font-weight: 800;
       color: var(--blue);
-      line-height: 1.35;
+      max-width: calc(100vw - 148px);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .attendance-table .text {
       white-space: normal;
-      word-break: keep-all;
-      overflow-wrap: normal;
+      word-break: break-word;
+    }
+
+    .attendance-table td,
+    .attendance-table th {
+      vertical-align: top;
+      white-space: normal;
+      overflow: visible;
+      text-overflow: unset;
+    }
+
+    .attendance-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .attendance-actions .checkIn {
+      flex: 1 1 120px;
+      max-width: 140px;
+    }
+
+    .notes-cell {
+      white-space: nowrap;
     }
 
     .checkIn {
-      width: 94px;
-      min-width: 94px;
+      min-width: 110px;
       height: 44px;
       white-space: nowrap;
       font-family: "Nunito", sans-serif;
@@ -354,141 +328,50 @@
       font-weight: 800;
       background: var(--green);
       color: #fff;
-      margin: 4px 2px;
-      padding: 8px 10px;
+      margin: 3px 2px;
+      padding: 9px 12px;
       border-radius: 12px;
       border: none;
       box-shadow: 0 10px 18px rgba(0, 131, 61, 0.22);
       transition: transform 120ms ease, box-shadow 120ms ease, background 120ms ease;
-      flex: 0 0 auto;
     }
 
     .checkIn:active { transform: translateY(1px) scale(0.99); }
 
-    .bottom-nav {
-      position: fixed;
-      left: 50%;
-      transform: translateX(-50%);
-      bottom: 0;
-      width: min(960px, 100%);
-      height: var(--nav-height);
-      background: var(--card);
-      border-radius: 18px 18px 0 0;
-      box-shadow: 0 -1px 0 rgba(0, 123, 180, 0.08), 0 -2px 18px rgba(0, 59, 92, 0.12);
+    .action-grid {
       display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      align-items: center;
-      padding: 10px 14px;
-      z-index: 20;
-      overflow: hidden;
+      gap: 10px;
+      margin-top: 14px;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
     }
-
-    .nav-btn {
-      border: none;
-      background: transparent;
-      color: var(--muted);
-      font-weight: 800;
-      font-size: 14px;
-      display: grid;
-      place-items: center;
-      gap: 6px;
-      padding: 10px 8px;
-      border-radius: 14px;
-      transition: background 160ms ease, color 160ms ease, transform 120ms ease;
-    }
-
-    .nav-btn span {
-      display: block;
-    }
-
-    .nav-btn .icon {
-      font-size: 18px;
-    }
-
-    .nav-btn.active {
-      background: #eef6fc;
-      color: var(--blue-strong);
-    }
-
-    .nav-btn:active { transform: translateY(1px) scale(0.98); }
 
     .pull-indicator {
       position: fixed;
-      top: 10px;
+      top: 6px;
       left: 50%;
       transform: translate(-50%, -120%);
-      padding: 8px 12px;
-      border-radius: 12px;
-      background: rgba(0, 123, 180, 0.92);
-      color: #fff;
+      background: rgba(0, 123, 180, 0.12);
+      color: var(--blue-strong);
+      padding: 10px 14px;
+      border-radius: 999px;
       font-weight: 800;
       font-size: 14px;
-      box-shadow: 0 10px 24px rgba(0, 59, 92, 0.22);
-      transition: transform 160ms ease, opacity 160ms ease;
+      backdrop-filter: blur(6px);
+      box-shadow: 0 10px 24px rgba(0, 123, 180, 0.14);
       opacity: 0;
-      z-index: 26;
+      transition: transform 180ms ease, opacity 180ms ease;
+      z-index: 20;
       pointer-events: none;
     }
 
-    body.pull-refresh-ready .pull-indicator {
-      transform: translate(-50%, 0);
+    .pull-indicator.active {
+      transform: translate(-50%, 12px);
       opacity: 1;
     }
 
-    .floating-actions {
-      position: fixed;
-      left: 50%;
-      transform: translateX(-50%);
-      bottom: calc(var(--nav-height) + 10px);
-      width: min(960px, calc(100% - 12px));
-      display: flex;
-      gap: 10px;
-      align-items: center;
-      justify-content: center;
-      z-index: 25;
-      pointer-events: none;
-    }
-
-      .floating-actions > * {
-        pointer-events: auto;
-      }
-
-    .floating-actions .cta,
-    .floating-actions .ghost {
-      flex: 1 1 0;
-      max-width: 260px;
-      padding: 12px 14px;
-      height: 50px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-      .actions-cell {
-        position: sticky;
-        right: 0;
-        background: linear-gradient(90deg, rgba(249, 252, 255, 0.82), #f9fcff 30%);
-        box-shadow: -6px 0 10px rgba(0, 59, 92, 0.04);
-      }
-
-      .action-stack { display: flex; gap: 10px; justify-content: flex-start; align-items: flex-start; }
-      .checkin-stack { display: flex; flex-direction: column; gap: 6px; align-items: flex-end; width: 100%; }
-      .checkins-cell { position: sticky; right: 94px; background: linear-gradient(90deg, rgba(249,252,255,0.9), #f9fcff 50%); box-shadow: -6px 0 10px rgba(0, 59, 92, 0.04); width: 108px; padding-right: 0; text-align: right; }
-    .notes-cell { position: sticky; right: 0; background: linear-gradient(90deg, rgba(249,252,255,0.92), #f9fcff 70%); box-shadow: -6px 0 10px rgba(0, 59, 92, 0.04); width: 96px; padding: 4px 2px 4px 0; text-align: right; }
-    .notes-btn { width: 90px; min-width: 90px; height: 44px; flex: 0 0 auto; margin-left: 0; }
-
-    @media (max-width: 520px) {
-      body { padding: 10px 6px; }
-      .app-shell { gap: 10px; }
-      .content-card { padding: 12px 10px calc(var(--nav-height) + 114px); }
-      .table-wrapper { padding: 4px 4px 2px; }
-      .data-table th, .data-table td { padding: 10px 6px; font-size: 14px; }
-      .schedule-table th:nth-child(3), .schedule-table td:nth-child(3) { width: auto; max-width: 64vw; }
-      .checkIn { margin: 3px 0; }
-      .checkin-stack { gap: 6px; }
-      .checkins-cell { right: 96px; }
-      .floating-actions { width: calc(100% - 10px); bottom: calc(var(--nav-height) + 8px); gap: 8px; }
-      .bottom-nav { width: 100%; border-radius: 16px 16px 0 0; }
+    .pull-indicator.refreshing {
+      background: linear-gradient(145deg, var(--blue-soft), var(--blue));
+      color: #fff;
     }
   </style>
 </head>
@@ -510,17 +393,7 @@
       </nav>
     </main>
   </div>
-  <div class="pull-indicator" aria-hidden="true">Release to refresh</div>
-  <nav class="bottom-nav" aria-label="Primary">
-    <button class="nav-btn" data-target="schedule">
-      <span class="icon" aria-hidden="true"><i class="ph-fill ph-calendar-check"></i></span>
-      <span>Schedule</span>
-    </button>
-    <button class="nav-btn" data-target="attendance">
-      <span class="icon" aria-hidden="true"><i class="ph-fill ph-clipboard-check"></i></span>
-      <span>Attendance</span>
-    </button>
-  </nav>
+  <div class="pull-indicator" id="pullIndicator">Pull to refresh</div>
   <script defer>
     function changeDate(days) {
       const dateField = document.getElementById("dateInput");
@@ -534,42 +407,76 @@
     }
     document.getElementById("prevDate").addEventListener("click", () => changeDate(-1));
     document.getElementById("nextDate").addEventListener("click", () => changeDate(1));
-
-    // Lightweight pull-to-refresh for touch devices
-    let pullStartY = null;
-    let pullArmed = false;
-
-    const pullHandler = {
-      start(e) {
-        if (window.scrollY === 0) {
-          pullStartY = e.touches[0].clientY;
-          pullArmed = true;
-        }
-      },
-      move(e) {
-        if (!pullArmed || pullStartY === null) return;
-        const delta = e.touches[0].clientY - pullStartY;
-        if (delta > 80) {
-          document.body.classList.add("pull-refresh-ready");
-        } else {
-          document.body.classList.remove("pull-refresh-ready");
-        }
-      },
-      end() {
-        if (document.body.classList.contains("pull-refresh-ready")) {
-          location.reload();
-        }
-        document.body.classList.remove("pull-refresh-ready");
-        pullStartY = null;
-        pullArmed = false;
-      }
-    };
-
-    window.addEventListener("touchstart", pullHandler.start, { passive: true });
-    window.addEventListener("touchmove", pullHandler.move, { passive: true });
-    window.addEventListener("touchend", pullHandler.end, { passive: true });
   </script>
-  <script src="getdata.js" defer></script>
+  <script>
+    (() => {
+      const indicator = document.getElementById("pullIndicator");
+      const threshold = 110;
+      const activation = 70;
+      let startY = null;
+      let pulling = false;
+      let rafId;
+      let lastDelta = 0;
+
+      const resetIndicator = () => {
+        indicator.classList.remove("active", "refreshing");
+        indicator.style.transform = "translate(-50%, -120%)";
+        indicator.style.opacity = "0";
+        lastDelta = 0;
+      };
+
+      const updateIndicator = (delta) => {
+        const clamped = Math.min(delta, threshold + 20);
+        const progress = Math.min(clamped / threshold, 1);
+        lastDelta = clamped;
+        indicator.style.transform = `translate(-50%, ${Math.max(-20, clamped * 0.18)}px)`;
+        indicator.style.opacity = `${Math.min(1, progress + 0.2)}`;
+        indicator.classList.toggle("active", clamped > activation);
+        indicator.textContent = clamped > threshold ? "Release to refresh" : "Pull to refresh";
+      };
+
+      window.addEventListener("touchstart", (event) => {
+        if (document.scrollingElement.scrollTop <= 0) {
+          startY = event.touches[0].clientY;
+          pulling = true;
+        } else {
+          startY = null;
+          pulling = false;
+        }
+      });
+
+      window.addEventListener("touchmove", (event) => {
+        if (!pulling || startY === null) return;
+        const delta = event.touches[0].clientY - startY;
+        if (delta <= 0) return;
+
+        if (rafId) cancelAnimationFrame(rafId);
+        rafId = requestAnimationFrame(() => updateIndicator(delta));
+      }, { passive: true });
+
+      window.addEventListener("touchend", () => {
+        if (!pulling || startY === null) {
+          resetIndicator();
+          return;
+        }
+
+        if (lastDelta > threshold) {
+          indicator.classList.add("refreshing");
+          indicator.textContent = "Refreshing...";
+          setTimeout(() => location.reload(), 120);
+        } else {
+          resetIndicator();
+        }
+        startY = null;
+        pulling = false;
+        lastDelta = 0;
+      });
+
+      window.addEventListener("scroll", () => {
+        if (document.scrollingElement.scrollTop > 4) resetIndicator();
+      });
+    })();
+  </script>
   <script src="navigation.js" defer></script>
 </body>
 </html>
