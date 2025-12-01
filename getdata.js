@@ -41,10 +41,12 @@ async function getevents() {
       const row = (data.data?.attributes?.rows || []).find(r => r[0] === personRow[0]);
       if (!row) return personRow;
       const ageYears = Math.floor((Date.now() - new Date(row[3])) / (1000 * 60 * 60 * 24 * 365)*10)/10;
+      const firstVisitDate = row[2] ? new Date(row[2]) : null;
+      const firstVisitMatches = firstVisitDate && new Intl.DateTimeFormat("en-CA", { timeZone: "America/Los_Angeles" }).format(firstVisitDate) === dateInputValue;
       if ([11485475,11559838,13602611,13167161].includes(personRow[0])) {
         return [...personRow.slice(0, 6),,,]
       } else {
-        return [...personRow.slice(0, 6), /\d/.test(row[1][6])?row[1][6]:row[1].split(" ")[0][0], !row[2], ageYears];
+        return [...personRow.slice(0, 6), /\d/.test(row[1][6])?row[1][6]:row[1].split(" ")[0][0], !row[2] || firstVisitMatches, ageYears];
       };
     });
     result = result.sort((a, b) => new Date(a[3]) - new Date(b[3])).map(item=>[...item.slice(0,3),...item.slice(3,5).map(date=>new Intl.DateTimeFormat("en-US", {timeZone: "America/Los_Angeles",hour: "numeric",minute: "2-digit",hour12: true}).format(new Date(date))),...item.slice(5,9)]);

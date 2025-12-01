@@ -1,5 +1,5 @@
-document.getElementById("dateInput").addEventListener("change", (event) => {
-  document.getElementById("myTable").innerHTML = "<tr><th>Loading...</th></tr>";
+document.getElementById("dateInput").addEventListener("change", () => {
+  showLoading("myTable");
 });
 window.addEventListener("scheduleUpdated", (e) => {
   updateTable(e.detail);
@@ -19,18 +19,6 @@ function toggleAttendance(button) {
   button.setAttribute("data-selection", newSelection);
   button.textContent = newSelection === "noshow" ? "No Show" : "Check In";
   button.style.backgroundColor = newSelection === "noshow" ? "#850000" : "#00833D";
-}
-
-function normalizeSchedule(scheduleData) {
-  if (Array.isArray(scheduleData)) return scheduleData;
-  if (typeof scheduleData === "string" && scheduleData.trim()) {
-    try { return JSON.parse(scheduleData); } catch (e) { console.error("Unable to parse schedule", e); }
-  }
-  const stored = sessionStorage.getItem("schedule");
-  if (stored) {
-    try { return JSON.parse(stored); } catch (e) { console.error("Unable to parse stored schedule", e); }
-  }
-  return [];
 }
 
 function updateTable(schedule){
@@ -58,7 +46,7 @@ function updateTable(schedule){
       states.push(data[j][2]);
       j++;
     }
-    merged.push({start,end: blockEnd,name: (s =>(w = s.trim().split(/\s+/),(w.length > 1 ? [w[0], w[w.length-1]] : [w[0]]).map(x => x[0].toUpperCase() + (/^[A-Z]+$/.test(x) ? x.slice(1).toLowerCase() : x.slice(1))).join(" ")))(name),level,id,vids,states});
+    merged.push({start,end: blockEnd,name: formatName(name),level,id,vids,states});
     i = j;
   }
   const getStateColor = (states) => {
