@@ -17,6 +17,15 @@ function normalizeSchedule(scheduleData) {
   return [];
 }
 
+function openNotes(studentId, level) {
+  try {
+    sessionStorage.setItem("selectedStudent", JSON.stringify({ id: studentId, level }));
+  } catch (e) {
+    console.error("Unable to persist selected student", e);
+  }
+  load("Note.html", "note.js");
+}
+
 function updateTable(schedule){
   const data = normalizeSchedule(schedule)
     .filter(item => (item[2]!="late_canceled"&&![11485475,11559838,13602611,13167161,""].includes(item[0])))
@@ -54,7 +63,7 @@ function updateTable(schedule){
       return `<button class="checkIn" data-visit="${vid}" data-state="${state}" data-selection="${selection}" style="background-color:${isNoShow ? "#850000" : "#00833D"};" onclick='const isNoShow = this.getAttribute("data-selection") !== "noshow"; this.textContent = isNoShow ? "No Show" : "Check In"; this.style.backgroundColor = isNoShow ? "#850000" : "#00833D"; this.setAttribute("data-selection", isNoShow ? "noshow" : "complete");'>${isNoShow ? "No Show" : "Check In"}</button>`;
     }).join("");
 
-    html+=`<tr><td><div class="text" style="color:${getStateColor(merged[i].states)};">${merged[i].name}</div></td><td class="attendance-actions">${attendanceButtons}</td><td class="notes-cell"><button class="checkIn" style="background-color:#007BB4;" onclick="location.href='https://mcdonaldswimschool.pike13.com/people/${merged[i].id}/notes';" id="${merged[i].id}">Notes</button></td></tr>`;
+    html+=`<tr><td><div class="text" style="color:${getStateColor(merged[i].states)};">${merged[i].name}</div></td><td class="attendance-actions">${attendanceButtons}</td><td class="notes-cell"><button class="checkIn" style="background-color:#007BB4;" onclick="openNotes('${merged[i].id}','${merged[i].level || ""}')" id="${merged[i].id}">Notes</button></td></tr>`;
   };
   console.log((merged.length>0)?html:"<tr><th>No Events</th></tr>");
   document.getElementById("myTable").innerHTML = (merged.length>0)?html:"<tr><th>No Events</th></tr>";

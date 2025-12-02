@@ -6,10 +6,20 @@
 </div>
 
 <div class="table-wrapper">
-  <table class="data-table" id="myTable" border="1"><tbody></tbody></table>
+  <div id="studentInfo" class="pill" style="display: inline-flex; margin-bottom: 10px;"></div>
+  <div class="note-sections" style="display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));">
+    <div class="note-section">
+      <h3 style="margin: 0 0 8px;">Worked on today</h3>
+      <ul id="workedOnList" class="skills-list" style="list-style: none; padding: 0; margin: 0;"></ul>
+    </div>
+    <div class="note-section">
+      <h3 style="margin: 0 0 8px;">To work on next time</h3>
+      <ul id="nextTimeList" class="skills-list" style="list-style: none; padding: 0; margin: 0;"></ul>
+    </div>
+  </div>
 </div>
 
 <div style="display: grid; gap: 10px; margin-top: 14px; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));">
-  <input class="cta" id="submit" type="submit" value="Submit">
-  <button class="ghost" onclick="load('attendance.html','attendance.js')" id="schedule">Attendance</button>
+  <button class="cta" id="saveNotes">Save notes</button>
+  <button class="ghost" id="backToAttendance">Back to attendance</button>
 </div>
