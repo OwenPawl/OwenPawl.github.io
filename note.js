@@ -200,9 +200,9 @@ async function submitNote(context) {
     return;
   }
 
-  const apiKey = sessionStorage.getItem("api_key");
+  const apiKey = localStorage.getItem("access_key");
   if (!apiKey) {
-    status.textContent = "No API key found in session storage.";
+    status.textContent = "No API key found in local storage.";
     status.className = "status error";
     return;
   }
