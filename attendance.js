@@ -52,10 +52,21 @@ function updateTable(schedule){
     for (let j = 0; j < merged[i].vids.length; j++){
       html+=`<button class="checkIn" data-role="checkin" style=background-color:${(merged[i].states[j]=="noshowed")?"#850000;":"#00833D;"} id="${merged[i].vids[j]}" data-state="${merged[i].states[j]}" onclick='if (this.textContent === "Check In") {this.textContent = "No Show";this.style.backgroundColor="#850000";} else {this.textContent = "Check In";this.style.backgroundColor="#00833D";}'>${(merged[i].states[j]=="noshowed")?"No Show":"Check In"}</button>`;
     };
-    html+=`</div></td><td class="actions-cell notes-cell"><button class="checkIn notes-btn" data-role="note" style="background-color:#007BB4;" onclick="location.href='https://mcdonaldswimschool.pike13.com/people/${merged[i].id}/notes';" id="${merged[i].id}">Notes</button></td></tr>`;
+    html+=`</div></td><td class="actions-cell notes-cell"><button class="checkIn notes-btn" data-role="note" style="background-color:#007BB4;" data-person-id="${merged[i].id}" data-person-name="${merged[i].name}" data-level="${merged[i].level ?? ""}" id="${merged[i].id}">Notes</button></td></tr>`;
   };
   console.log((merged.length>0)?html:"<tr><th>No Events</th></tr>");
   document.getElementById("myTable").innerHTML = (merged.length>0)?html:"<tr><th>No Events</th></tr>";
+  document.querySelectorAll(".notes-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const noteContext = {
+        personId: btn.dataset.personId,
+        personName: btn.dataset.personName,
+        level: btn.dataset.level || ""
+      };
+      sessionStorage.setItem("noteContext", JSON.stringify(noteContext));
+      load("Note.html", "note.js");
+    });
+  });
 };
 updateTable();
 document.getElementById("submit").addEventListener("click", (event) => {
