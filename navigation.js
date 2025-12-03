@@ -1,6 +1,7 @@
 const routes = {
   schedule: { file: "schedule.html", script: "table_populator.js" },
-  attendance: { file: "attendance.html", script: "attendance.js" }
+  attendance: { file: "attendance.html", script: "attendance.js" },
+  notes: { file: "notes.html", script: "notes.js" }
 };
 
 const routeByFile = Object.entries(routes).reduce((map, [key, value]) => {

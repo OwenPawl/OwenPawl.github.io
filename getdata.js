@@ -44,7 +44,7 @@ async function getevents() {
       if ([11485475,11559838,13602611,13167161].includes(personRow[0])) {
         return [...personRow.slice(0, 6),,,]
       } else {
-        return [...personRow.slice(0, 6), /\d/.test(row[1][6])?row[1][6]:row[1].split(" ")[0][0], !row[2], ageYears];
+        return [...personRow.slice(0, 6), /\d/.test(row[1][6])?row[1][6]:row[1].split(" ")[0][0], !row[2], ageYears, row[1]];
       };
     });
     result = result.sort((a, b) => new Date(a[3]) - new Date(b[3])).map(item=>[...item.slice(0,3),...item.slice(3,5).map(date=>new Intl.DateTimeFormat("en-US", {timeZone: "America/Los_Angeles",hour: "numeric",minute: "2-digit",hour12: true}).format(new Date(date))),...item.slice(5,9)]);
