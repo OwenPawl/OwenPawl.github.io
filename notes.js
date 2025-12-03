@@ -92,13 +92,18 @@
 
     // Update API
     try {
+      const formData = new FormData();
+      formData.append("_method", "patch");
+      formData.append("person[person_custom_fields_attributes][0][value]", newLevel);
+      formData.append("person[person_custom_fields_attributes][0][custom_field_id]", "180098");
+      formData.append("person[person_custom_fields_attributes][0][id]", "51183690");
+
       const response = await fetch(`https://mcdonaldswimschool.pike13.com/api/v2/desk/people/${id}`, {
-        method: "PUT",
+        method: "POST",
         headers: {
-          "Authorization": `Bearer ${localStorage.getItem("access_token")}`,
-          "Content-Type": "application/json"
+          "Authorization": `Bearer ${localStorage.getItem("access_token")}`
         },
-        body: JSON.stringify({ person: { custom_fields: [{ id: 180098, value: newLevel }] } })
+        body: formData
       });
 
       if (!response.ok) {
