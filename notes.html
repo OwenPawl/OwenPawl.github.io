@@ -1,0 +1,72 @@
+<div class="screen-header">
+  <div>
+    <p class="pill" id="noteLevel">Level</p>
+    <h2 class="screen-title" id="noteTitle">Notes</h2>
+  </div>
+</div>
+
+<div class="content-card" style="box-shadow: none; padding: 0; min-height: 0;">
+  <div id="checklistContainer"></div>
+
+  <div style="margin-top: 20px; display: flex; flex-direction: column; gap: 10px;">
+    <button class="ghost" id="openPike13">Open Custom Note in Pike13</button>
+  </div>
+</div>
+
+<div class="floating-actions">
+  <button class="ghost" onclick="navigate('attendance')">Back</button>
+  <button class="cta" id="submitNote">Submit</button>
+</div>
+
+<style>
+  .checklist-section {
+    margin-bottom: 24px;
+  }
+  .checklist-header {
+    font-size: 18px;
+    font-weight: 800;
+    margin-bottom: 12px;
+    color: var(--blue-strong);
+    border-bottom: 2px solid #eef6fc;
+    padding-bottom: 6px;
+  }
+  .skill-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid #f0f6fb;
+  }
+  .skill-label {
+    flex: 1;
+    font-weight: 700;
+    font-size: 15px;
+    padding-right: 12px;
+  }
+  .skill-controls {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+  .checkbox-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+  .checkbox-label {
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+  input[type="checkbox"] {
+    width: 24px;
+    height: 24px;
+    accent-color: var(--blue);
+    cursor: pointer;
+  }
+  input[type="checkbox"].next-time {
+    accent-color: var(--green);
+  }
+</style>
