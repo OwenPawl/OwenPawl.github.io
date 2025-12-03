@@ -2,32 +2,20 @@ document.getElementById("dateInput").addEventListener("change", (event) => {
   document.getElementById("myTable").innerHTML = "<tr><th>Loading...</th></tr>";
 });
 window.addEventListener("scheduleUpdated", (e) => {
+  console.log("Attendance scheduleUpdated event received", e.detail);
   updateTable(e.detail);
 });
 
-function normalizeSchedule(scheduleData) {
-  if (Array.isArray(scheduleData)) return scheduleData;
-  if (typeof scheduleData === "string" && scheduleData.trim()) {
-    try { return JSON.parse(scheduleData); } catch (e) { console.error("Unable to parse schedule", e); }
-  }
-  const stored = sessionStorage.getItem("schedule");
-  if (stored) {
-    try { return JSON.parse(stored); } catch (e) { console.error("Unable to parse stored schedule", e); }
-  }
-  return [];
-}
-
 function updateTable(schedule){
   const data = normalizeSchedule(schedule)
-    .filter(item => (item[2]!="late_canceled"&&![11485475,11559838,13602611,13167161,""].includes(item[0])))
-    .map(i => i.slice(0,7));
+    .filter(item => (item[2]!="late_canceled"&&![11485475,11559838,13602611,13167161,""].includes(item[0])));
   if (!data.length) {
     document.getElementById("myTable").innerHTML = "<tr><th>No Events</th></tr>";
     return;
   }
   const merged = [];
   for (let i = 0; i < data.length; ) {
-    const [id,vid,state, start, end, name, level] = data[i];
+    const [id,vid,state, start, end, name, level, New, age, fullLevel] = data[i];
     let blockEnd = end;
     let vids = [vid];
     let states=[state];
@@ -42,7 +30,7 @@ function updateTable(schedule){
       states.push(data[j][2]);
       j++;
     }
-    merged.push({start,end: blockEnd,name: (s =>(w = s.trim().split(/\s+/),(w.length > 1 ? [w[0], w[w.length-1]] : [w[0]]).map(x => x[0].toUpperCase() + (/^[A-Z]+$/.test(x) ? x.slice(1).toLowerCase() : x.slice(1))).join(" ")))(name),level,id,vids,states});
+    merged.push({start,end: blockEnd,name: (s =>(w = s.trim().split(/\s+/),(w.length > 1 ? [w[0], w[w.length-1]] : [w[0]]).map(x => x[0].toUpperCase() + (/^[A-Z]+$/.test(x) ? x.slice(1).toLowerCase() : x.slice(1))).join(" ")))(name),level,fullLevel,id,vids,states});
     i = j;
   }
   let html="";
@@ -52,7 +40,8 @@ function updateTable(schedule){
     for (let j = 0; j < merged[i].vids.length; j++){
       html+=`<button class="checkIn" data-role="checkin" style=background-color:${(merged[i].states[j]=="noshowed")?"#850000;":"#00833D;"} id="${merged[i].vids[j]}" data-state="${merged[i].states[j]}" onclick='if (this.textContent === "Check In") {this.textContent = "No Show";this.style.backgroundColor="#850000";} else {this.textContent = "Check In";this.style.backgroundColor="#00833D";}'>${(merged[i].states[j]=="noshowed")?"No Show":"Check In"}</button>`;
     };
-    html+=`</div></td><td class="actions-cell notes-cell"><button class="checkIn notes-btn" data-role="note" style="background-color:#007BB4;" onclick="location.href='https://mcdonaldswimschool.pike13.com/people/${merged[i].id}/notes';" id="${merged[i].id}">Notes</button></td></tr>`;
+    const noteData = JSON.stringify({id: merged[i].id, name: merged[i].name, fullLevel: merged[i].fullLevel}).replace(/"/g, '\\"');
+    html+=`</div></td><td class="actions-cell notes-cell"><button class="checkIn notes-btn" data-role="note" style="background-color:#007BB4;" onclick='sessionStorage.setItem("noteContext", "${noteData}"); navigate("notes");' id="${merged[i].id}">Notes</button></td></tr>`;
   };
   console.log((merged.length>0)?html:"<tr><th>No Events</th></tr>");
   document.getElementById("myTable").innerHTML = (merged.length>0)?html:"<tr><th>No Events</th></tr>";
