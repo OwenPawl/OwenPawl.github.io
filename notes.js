@@ -140,7 +140,7 @@
     }
 
     // New HTML Format
-    // Skills we worked on:<br><ul><li>1</li><li>2</li></ul>Skills to work focus on next time:<br><ul><li>1</li><li>2</li></ul>
+    // Skills we worked on:<br><ul><li>1</li><li>2</li></ul>Skills to work on next time:<br><ul><li>1</li><li>2</li></ul>
     let noteBody = "";
     if (workedOn.length > 0) {
       noteBody += "Skills we worked on:<br><ul>";
@@ -148,7 +148,7 @@
       noteBody += "</ul>";
     }
     if (nextTime.length > 0) {
-      noteBody += "Skills to work focus on next time:<br><ul>";
+      noteBody += "Skills to work on next time:<br><ul>";
       nextTime.forEach(s => noteBody += `<li>${s}</li>`);
       noteBody += "</ul>";
     }
@@ -173,7 +173,8 @@
         body: JSON.stringify({
           note: {
             note: noteBody,
-            public: true
+            public: true,
+            send_notifications: true
           }
         })
       });
