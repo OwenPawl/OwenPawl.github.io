@@ -181,7 +181,8 @@
 
       if (response.ok) {
         showNotification("Note submitted successfully!", "success");
-        navigate("attendance");
+        submitBtn.textContent = "Submitted";
+        submitBtn.disabled = true;
       } else {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
