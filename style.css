@@ -197,7 +197,7 @@ body {
 .name-text {
   display: block;
   width: 100%;
-  max-width: min(360px, 60vw);
+  max-width: 100%;
   min-width: 0;
   white-space: nowrap;
   overflow: hidden;
@@ -216,30 +216,21 @@ body {
 }
 
 .schedule-table th:nth-child(1),
-.schedule-table td:nth-child(1) {
-  width: clamp(56px, 8vw, 72px);
-  white-space: nowrap;
-}
-
+.schedule-table td:nth-child(1),
 .schedule-table th:nth-child(2),
-.schedule-table td:nth-child(2) {
-  width: clamp(52px, 7.5vw, 68px);
-  white-space: nowrap;
-}
-
+.schedule-table td:nth-child(2),
 .schedule-table th:nth-child(4),
 .schedule-table td:nth-child(4),
 .schedule-table th:nth-child(5),
 .schedule-table td:nth-child(5) {
-  width: clamp(52px, 8vw, 66px);
+  width: 1%;
   white-space: nowrap;
 }
 
 .schedule-table th:nth-child(3),
 .schedule-table td:nth-child(3) {
-  min-width: 0;
   width: 100%;
-  max-width: min(360px, 60vw);
+  max-width: 0;
 }
 
 .text {
