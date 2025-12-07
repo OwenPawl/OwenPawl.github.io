@@ -397,3 +397,50 @@ body.pull-refresh-ready .pull-indicator {
   .floating-actions { width: calc(100% - 10px); bottom: calc(var(--nav-height) + 8px); gap: 8px; }
   .bottom-nav { width: 100%; border-radius: 16px 16px 0 0; }
 }
+
+/* Checkbox Styles */
+.custom-checkbox {
+  appearance: none;
+  background-color: transparent;
+  margin: 4px 2px;
+  width: 44px;
+  height: 44px;
+  border: 2px solid var(--muted);
+  border-radius: 8px;
+  display: grid;
+  place-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  flex: 0 0 auto;
+}
+
+.custom-checkbox::after {
+    content: '';
+    position: absolute;
+    width: 20px;
+    height: 10px;
+    border-left: 3px solid white;
+    border-bottom: 3px solid white;
+    transform: rotate(-45deg) scale(0);
+    transition: transform 0.2s ease;
+    top: 12px;
+    left: 10px;
+}
+
+.custom-checkbox:checked {
+    background-color: var(--green);
+    border-color: var(--green);
+}
+.custom-checkbox:checked::after {
+    transform: rotate(-45deg) scale(1);
+}
+
+/* Center checkins */
+.checkins-cell {
+  text-align: center;
+  padding-right: 0;
+}
+.checkin-stack {
+  align-items: center;
+}
