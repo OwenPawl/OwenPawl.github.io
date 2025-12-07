@@ -397,3 +397,35 @@ body.pull-refresh-ready .pull-indicator {
   .floating-actions { width: calc(100% - 10px); bottom: calc(var(--nav-height) + 8px); gap: 8px; }
   .bottom-nav { width: 100%; border-radius: 16px 16px 0 0; }
 }
+
+/* Custom Checkbox for Attendance */
+.attendance-checkbox {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 44px;
+  height: 44px;
+  border: 2px solid var(--blue);
+  border-radius: 8px;
+  background-color: white;
+  cursor: pointer;
+  position: relative;
+  margin: 4px 2px;
+  flex: 0 0 auto;
+}
+
+.attendance-checkbox:checked {
+  background-color: var(--green);
+  border-color: var(--green);
+}
+
+.attendance-checkbox:checked::after {
+  content: '';
+  position: absolute;
+  top: 4px;
+  left: 14px;
+  width: 12px;
+  height: 24px;
+  border: solid white;
+  border-width: 0 4px 4px 0;
+  transform: rotate(45deg);
+}
