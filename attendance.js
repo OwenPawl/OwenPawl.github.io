@@ -88,48 +88,42 @@ function updateTable(schedule){
 updateTable();
 
 document.getElementById("submit").addEventListener("click", (event) => {
-  const checkboxes = [...document.querySelectorAll(".attendance-checkbox")];
+  const rows = [...document.getElementById("myTable").querySelectorAll("tbody tr")];
+  let structuredUpdates = []; // [{round: 0, update: ...}, {round: 1, update: ...}]
 
-  // Collect all updates
-  // Structure: [{vid, originalState, isChecked, desiredState}]
-  let updates = checkboxes.map(cb => {
-    const vid = cb.getAttribute("data-vid");
-    const originalState = cb.getAttribute("data-original-state");
-    const isChecked = cb.checked;
+  rows.forEach(row => {
+    const cbs = [...row.querySelectorAll(".attendance-checkbox")];
+    cbs.forEach((cb, index) => {
+      const vid = cb.getAttribute("data-vid");
+      const originalState = cb.getAttribute("data-original-state");
+      const isChecked = cb.checked;
 
-    // Determine desired state
-    // Checked -> completed
-    // Unchecked -> noshowed
-    // BUT exception: if original is late_canceled and unchecked, we preserve late_canceled (don't update to noshowed)
-    // Actually, "Only send attendance updates when the attendee’s status changes."
-
-    let desiredState;
-    if (isChecked) {
+      let desiredState;
+      if (isChecked) {
         desiredState = "completed";
-    } else {
-        // Unchecked
+      } else {
         if (originalState === "late_canceled") {
-            desiredState = "late_canceled"; // Preserve late_canceled if unchecked
+          desiredState = "late_canceled";
         } else {
-            desiredState = "noshowed";
+          desiredState = "noshowed";
         }
-    }
+      }
 
-    return {
-        vid,
-        originalState,
-        isChecked,
-        desiredState,
-        // We also need to know if we need to reset first.
-        // If changing state (e.g. late_canceled -> completed), we might need reset?
-        // Original code did reset for (type != state && state != registered).
-        // Pike13 API usually requires reset if transitioning between mutually exclusive states if not "registered".
-        // Safe to reset if state changes.
-        needsUpdate: desiredState !== originalState
-    };
-  }).filter(u => u.needsUpdate); // Requirement 1: Only send updates when status changes
+      if (desiredState !== originalState) {
+        structuredUpdates.push({
+          round: index,
+          vid,
+          originalState,
+          desiredState
+        });
+      }
+    });
+  });
 
-  console.log("Updates to send:", updates);
+  // Sort by round
+  structuredUpdates.sort((a, b) => a.round - b.round);
+
+  console.log("Updates to send:", structuredUpdates);
 
   const desk="https://mcdonaldswimschool.pike13.com/api/v2/desk/";
   async function Attendance() {
@@ -139,58 +133,6 @@ document.getElementById("submit").addEventListener("click", (event) => {
             "Authorization": `Bearer ${localStorage.getItem("access_token")}`,
             "Content-Type": "application/json"
         };
-
-        // Group updates by round (1st events, 2nd events, etc.)
-        // But here we have a flat list of updates.
-        // We need to know which "round" each update belongs to.
-        // The checkboxes are in DOM order.
-        // The DOM order is: For each student -> For each event (0, 1, 2...)
-        // We can reconstruct the "round" index.
-        // Or better, when collecting checkboxes, we can get the student index and event index?
-        // But the requirements say "Update all first attendees across events -> then all second".
-        // Since we filtered updates, we might lose the "n-th event" context.
-        // Actually, we can just process them in the order we found them?
-        // No, "all first attendees across events" means:
-        // Update Student1-Event1, Student2-Event1, Student3-Event1...
-        // Then Student1-Event2, Student2-Event2...
-
-        // To do this, we need to know for each checkbox, which "index" it has within that student's list.
-        // Let's re-collect with index info.
-
-        const rows = [...document.getElementById("myTable").querySelectorAll("tbody tr")];
-        let structuredUpdates = []; // [{round: 0, update: ...}, {round: 1, update: ...}]
-
-        rows.forEach(row => {
-            const cbs = [...row.querySelectorAll(".attendance-checkbox")];
-            cbs.forEach((cb, index) => {
-                 const vid = cb.getAttribute("data-vid");
-                 const originalState = cb.getAttribute("data-original-state");
-                 const isChecked = cb.checked;
-
-                 let desiredState;
-                 if (isChecked) {
-                     desiredState = "completed";
-                 } else {
-                     if (originalState === "late_canceled") {
-                         desiredState = "late_canceled";
-                     } else {
-                         desiredState = "noshowed";
-                     }
-                 }
-
-                 if (desiredState !== originalState) {
-                     structuredUpdates.push({
-                         round: index,
-                         vid,
-                         originalState,
-                         desiredState
-                     });
-                 }
-            });
-        });
-
-        // Sort by round
-        structuredUpdates.sort((a, b) => a.round - b.round);
 
         // Now execute in order
         for (const u of structuredUpdates) {
