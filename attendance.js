@@ -129,6 +129,19 @@ document.getElementById("submit").addEventListener("click", (event) => {
     for (let i = 0; i <= maxIndex; i++) {
         if (rounds[i]) {
             await Promise.all(rounds[i].map(async (u) => {
+                 // Determine if reset is needed
+                 // "If the state is completed and is being changed to noshow, then their attendance needs to be reset... same is true when going from no show to completed."
+                 const isCompletedToNoshow = (u.currentState === 'completed' && u.newState === 'noshow');
+                 const isNoshowToCompleted = (u.currentState === 'noshowed' && u.newState === 'complete');
+
+                 if (isCompletedToNoshow || isNoshowToCompleted) {
+                     await fetch(`${desk}visits/${u.vid}`, {
+                        method: "PUT",
+                        headers,
+                        body: JSON.stringify({ visit: { state_event: "reset" } })
+                     });
+                 }
+
                  await fetch(`${desk}visits/${u.vid}`, {
                     method: "PUT",
                     headers,
