@@ -130,11 +130,10 @@ document.getElementById("submit").addEventListener("click", (event) => {
         if (rounds[i]) {
             await Promise.all(rounds[i].map(async (u) => {
                  // Determine if reset is needed
-                 // "If the state is completed and is being changed to noshow, then their attendance needs to be reset... same is true when going from no show to completed."
-                 const isCompletedToNoshow = (u.currentState === 'completed' && u.newState === 'noshow');
-                 const isNoshowToCompleted = (u.currentState === 'noshowed' && u.newState === 'complete');
+                 // "resets first if the attendance is being altered to anything other than registered from its original state"
+                 // If original state is not registered, and we are altering it (implied by loop presence), reset first.
 
-                 if (isCompletedToNoshow || isNoshowToCompleted) {
+                 if (u.currentState !== 'registered') {
                      await fetch(`${desk}visits/${u.vid}`, {
                         method: "PUT",
                         headers,
