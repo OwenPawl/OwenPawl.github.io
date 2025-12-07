@@ -197,7 +197,7 @@ body {
 .name-text {
   display: block;
   width: 100%;
-  max-width: min(360px, 60vw);
+  max-width: 100%;
   min-width: 0;
   white-space: nowrap;
   overflow: hidden;
@@ -206,40 +206,29 @@ body {
 }
 
 .schedule-table {
-  table-layout: auto;
+  display: grid;
+  grid-template-columns: max-content max-content minmax(0, 1fr) max-content max-content;
   width: 100%;
+}
+
+.schedule-table thead,
+.schedule-table tbody,
+.schedule-table tr {
+  display: contents;
 }
 
 .schedule-table th,
 .schedule-table td {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
   overflow: hidden;
 }
 
-.schedule-table th:nth-child(1),
-.schedule-table td:nth-child(1) {
-  width: clamp(56px, 8vw, 72px);
-  white-space: nowrap;
-}
-
-.schedule-table th:nth-child(2),
-.schedule-table td:nth-child(2) {
-  width: clamp(52px, 7.5vw, 68px);
-  white-space: nowrap;
-}
-
-.schedule-table th:nth-child(4),
-.schedule-table td:nth-child(4),
-.schedule-table th:nth-child(5),
-.schedule-table td:nth-child(5) {
-  width: clamp(52px, 8vw, 66px);
-  white-space: nowrap;
-}
-
-.schedule-table th:nth-child(3),
-.schedule-table td:nth-child(3) {
-  min-width: 0;
-  width: 100%;
-  max-width: min(360px, 60vw);
+.schedule-table :is(th, td):only-child {
+  grid-column: 1 / -1;
+  align-items: center;
+  text-align: center;
 }
 
 .text {
@@ -390,7 +379,6 @@ body.pull-refresh-ready .pull-indicator {
   .content-card { padding: 12px 10px calc(var(--nav-height) + 114px); }
   .table-wrapper { padding: 4px 4px 2px; }
   .data-table th, .data-table td { padding: 10px 6px; font-size: 14px; }
-  .schedule-table th:nth-child(3), .schedule-table td:nth-child(3) { width: auto; max-width: 64vw; }
   .checkIn { margin: 3px 0; }
   .checkin-stack { gap: 6px; }
   .checkins-cell { right: 96px; }
