@@ -191,14 +191,14 @@ body {
   border-radius: var(--radius-lg);
   padding: 6px 6px 4px;
   box-shadow: inset 0 0 0 1px rgba(0, 123, 180, 0.05);
-  /* Changed to hidden to enforce "in viewport" rule. */
-  overflow-x: hidden;
-  width: 100%;
+  overflow-x: auto;
 }
 
 .name-text {
   display: block;
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -206,43 +206,29 @@ body {
 }
 
 .schedule-table {
-  table-layout: auto;
+  display: grid;
+  grid-template-columns: max-content max-content minmax(0, 1fr) max-content max-content;
   width: 100%;
-  /* Ensures table respects container width */
-  max-width: 100%; 
+}
+
+.schedule-table thead,
+.schedule-table tbody,
+.schedule-table tr {
+  display: contents;
 }
 
 .schedule-table th,
 .schedule-table td {
-  /* Default safe sizing */
-  white-space: nowrap;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  overflow: hidden;
 }
 
-/* Dynamic Sizing Logic:
-  1. Non-name columns get 1% width (shrinks to content).
-  2. Name column (3rd) gets 100% width but max-width: 0. 
-     This forces the table to give it ONLY the remaining space,
-     triggering the ellipsis inside .name-text when needed.
-*/
-
-.schedule-table th:nth-child(1),
-.schedule-table td:nth-child(1),
-.schedule-table th:nth-child(2),
-.schedule-table td:nth-child(2),
-.schedule-table th:nth-child(4),
-.schedule-table td:nth-child(4),
-.schedule-table th:nth-child(5),
-.schedule-table td:nth-child(5) {
-  width: 1%;
-  white-space: nowrap;
-}
-
-.schedule-table th:nth-child(3),
-.schedule-table td:nth-child(3) {
-  width: 100%;
-  max-width: 0;
-  /* Ensure padding doesn't break calculation */
-  box-sizing: border-box; 
+.schedule-table :is(th, td):only-child {
+  grid-column: 1 / -1;
+  align-items: center;
+  text-align: center;
 }
 
 .text {
@@ -393,7 +379,6 @@ body.pull-refresh-ready .pull-indicator {
   .content-card { padding: 12px 10px calc(var(--nav-height) + 114px); }
   .table-wrapper { padding: 4px 4px 2px; }
   .data-table th, .data-table td { padding: 10px 6px; font-size: 14px; }
-  /* REMOVED the specific override for nth-child(3) width here */
   .checkIn { margin: 3px 0; }
   .checkin-stack { gap: 6px; }
   .checkins-cell { right: 96px; }
