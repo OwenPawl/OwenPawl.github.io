@@ -115,7 +115,7 @@
       sessionStorage.setItem("noteContext", JSON.stringify(noteData));
     } catch (e) {
       console.error("Error updating level:", e);
-      alert(`Failed to update level. ${e.message}`);
+      showNotification(`Failed to update level. ${e.message}`, "error");
     }
   });
 
@@ -135,7 +135,7 @@
     });
 
     if (workedOn.length === 0 && nextTime.length === 0) {
-      alert("Please select at least one skill.");
+      showNotification("Please select at least one skill.", "error");
       return;
     }
 
@@ -180,14 +180,14 @@
       });
 
       if (response.ok) {
-        alert("Note submitted successfully!");
+        showNotification("Note submitted successfully!", "success");
         navigate("attendance");
       } else {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
     } catch (error) {
       console.error("Error submitting note:", error);
-      alert("Failed to submit note. Please try again.");
+      showNotification("Failed to submit note. Please try again.", "error");
       submitBtn.disabled = false;
       submitBtn.textContent = "Submit";
     }
