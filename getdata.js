@@ -23,9 +23,6 @@ async function getevents() {
 
   window.dispatchEvent(new Event("scheduleLoading"));
 
-  console.log(staff_id);
-  console.log(dateInputValue);
-
   try {
     const [events, opens] = await Promise.all([
       pikeFetch(`event_occurrences.json?&from=${dateInputValue}T${midnight}Z&staff_member_ids=${staff_id}`),
@@ -51,18 +48,25 @@ async function getevents() {
     }
 
     result = [
-      ...Events.event_occurrences.flatMap(event => event.people.map(person => ({
-        id: person.id,
-        vid: person.visit_id,
-        state: person.visit_state,
-        start: event.start_at, // Keep as ISO string for sorting/logic
-        end: event.end_at,     // Keep as ISO string
-        name: person.name,
-        shortLevel: "...",
-        isNew: "",
-        age: "...",
-        fullLevel: ""
-      }))),
+      ...Events.event_occurrences.flatMap(event => event.people.map(person => {
+        // --- CHANGE: Pre-check for excluded IDs ---
+        const isExcluded = EXCLUDED_IDS.includes(person.id);
+        return {
+          id: person.id,
+          vid: person.visit_id,
+          state: person.visit_state,
+          start: event.start_at,
+          end: event.end_at,
+          name: person.name,
+          // Set to EMPTY string immediately if excluded, else "..."
+          shortLevel: isExcluded ? "" : "...",
+          isNew: "",
+          age: isExcluded ? "" : "...",
+          fullLevel: "",
+          firstName: "",
+          lastName: ""
+        };
+      })),
       ...uniqueOpens.map(({
         start_at,
         end_at,
@@ -77,82 +81,83 @@ async function getevents() {
         shortLevel: "",
         isNew: "",
         age: "",
-        fullLevel: ""
+        fullLevel: "",
+        firstName: "",
+        lastName: ""
       }))
     ];
 
-    // --- OPTIMIZATION: REMOVED FIRST SORT & FORMAT ---
-    // We now keep the 'start' as an ISO string until the very end.
-    // This removes the need for `_sortStart` and double sorting.
-    
-  } catch (error) {
-    console.error("Error fetching or processing first API data:", error);
-    window.dispatchEvent(new CustomEvent("scheduleUpdated", { detail: "[]" }));
-    return []; 
-  }
+    const uniquePersonIds = [...new Set(result
+      .map(r => r.id)
+      .filter(id => id && !EXCLUDED_IDS.includes(id))
+    )];
 
-  // Second Pass: Fetch Details
-  try {
-    const reportsToken = await getReportsToken();
-    
-    if (!reportsToken) {
-      throw new Error("Unable to obtain Reports API Token");
-    }
+    if (uniquePersonIds.length > 0) {
+      const levelsPromise = pikeFetch(`people.json?ids=${uniquePersonIds.join(",")}`);
 
-    const reportUrl = `${PIKE13_API_V3}reports/clients/queries`;
-    
-    const personIds = result.filter(item => item.id).map(item => ["eq", "person_id", [item.id.toString()]]);
-    
-    if (personIds.length > 0) {
-      const response = await fetch(reportUrl, {
-          method: "POST",
-          headers: {
-            "Authorization": `Bearer ${reportsToken}`,
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            data: {
-              type: "queries",
-              attributes: {
-                page: {},
-                fields: ["person_id", "custom_field_180098", "first_visit_date", "birthdate"],
-                filter: ["or", personIds]
-              }
-            }
-          })
+      const visitsPromises = uniquePersonIds.map(id => 
+        pikeFetch(`people/${id}/visits/summary`)
+          .then(data => ({ id, data }))
+          .catch(e => ({ id, error: e }))
+      );
+
+      const [peopleData, ...visitsResults] = await Promise.all([levelsPromise, ...visitsPromises]);
+
+      const peopleMap = new Map();
+      if (peopleData && peopleData.people) {
+        peopleData.people.forEach(p => {
+          let age = "...";
+          if (p.birthdate) {
+            age = Math.floor((Date.now() - new Date(p.birthdate)) / (1000 * 60 * 60 * 24 * 365) * 10) / 10;
+          }
+          peopleMap.set(p.id, {
+            fullLevel: p.secondary_info_field || "",
+            age: age,
+            firstName: p.first_name || "",
+            lastName: p.last_name || ""
+          });
+        });
+      }
+
+      const visitsMap = new Map();
+      visitsResults.forEach(({ id, data }) => {
+        let isNew = true; 
+        
+        if (data && data.summaries && data.summaries.length > 0) {
+          const summary = data.summaries[0];
+          if (summary.first_visited_at) {
+             const firstVisitDate = summary.first_visited_at.split("T")[0];
+             if (firstVisitDate < dateInputValue) {
+               isNew = false;
+             }
+          }
+        }
+        visitsMap.set(id, isNew);
       });
 
-      if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
-      const data = await response.json();
+      result = result.map(item => {
+        if (!item.id || EXCLUDED_IDS.includes(item.id)) return item;
 
-      result = result.map(personObj => {
-        const row = (data.data?.attributes?.rows || []).find(r => r[0] === personObj.id);
+        const pData = peopleMap.get(item.id) || {};
+        const isNew = visitsMap.get(item.id) ?? false;
         
-        if (!row || EXCLUDED_IDS.includes(personObj.id)) {
-          return { ...personObj };
-        }
-
-        const ageYears = Math.floor((Date.now() - new Date(row[3])) / (1000 * 60 * 60 * 24 * 365) * 10) / 10;
-        const isNew = !row[2] || row[2] === dateInputValue;
-        const fullLevel = row[1] || "";
-
-        const shortLevel = getShortLevel(fullLevel, ageYears);
+        const shortLevel = getShortLevel(pData.fullLevel, pData.age);
 
         return {
-          ...personObj,
+          ...item,
           shortLevel,
           isNew,
-          age: ageYears,
-          fullLevel
+          age: pData.age,
+          fullLevel: pData.fullLevel,
+          firstName: pData.firstName,
+          lastName: pData.lastName
         };
       });
     }
-    
-    // --- SINGLE FINAL SORT & FORMAT ---
+
     result = result.sort((a, b) => new Date(a.start) - new Date(b.start))
                    .map(item => ({
                      ...item,
-                     // We format specifically for display now
                      start: new Intl.DateTimeFormat("en-US", {
                        timeZone: "America/Los_Angeles",
                        hour: "numeric",
@@ -173,7 +178,8 @@ async function getevents() {
     }));
 
   } catch (error) {
-    console.error("Error fetching or processing second API data:", error);
+    console.error("Error fetching or processing API data:", error);
+    window.dispatchEvent(new CustomEvent("scheduleUpdated", { detail: "[]" }));
   }
   return result;
 };

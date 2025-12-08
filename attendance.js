@@ -1,7 +1,5 @@
 {
   // --- STATE MANAGEMENT ---
-  // We use a Map to store the current state of every visit, decoupled from the DOM.
-  // Key: vid (string), Value: { currentState, originalState, eventIndex }
   const visitState = new Map();
 
   const handleAttendanceLoading = () => {
@@ -15,30 +13,22 @@
   };
 
   const handleScheduleUpdate = (e) => {
-    // When fresh data comes in, we must rebuild our state map
     updateTable(e.detail);
   };
 
   const handleInteraction = (e) => {
-    // Event Delegation: Listen for changes on the table, not individual inputs
     if (e.target.matches("input[data-role='checkin']")) {
       const vid = e.target.id;
       const isChecked = e.target.checked;
       
       if (visitState.has(vid)) {
         const record = visitState.get(vid);
-        
-        // Determine the simplified visual state based on the checkbox
-        // Note: The actual Pike13 state logic (noshow vs late_canceled) is handled in Submit
         record.isChecked = isChecked;
-        
-        // Update the Map
         visitState.set(vid, record);
       }
     }
   };
 
-  // --- INIT & CLEANUP ---
   const dateInput = document.getElementById("dateInput");
   const table = document.getElementById("myTable");
 
@@ -57,11 +47,10 @@
   };
 
   // --- RENDER LOGIC ---
-
   function updateTable(schedule) {
     const table = document.getElementById("myTable");
     table.innerHTML = "";
-    visitState.clear(); // Reset state on new data load
+    visitState.clear();
 
     const rawData = normalizeSchedule(schedule).filter(item => (!EXCLUDED_IDS.includes(item.id)));
     
@@ -72,11 +61,12 @@
       cell.style.fontWeight = "bold";
       return;
     }
+
+    const vidToTime = new Map();
+    rawData.forEach(row => vidToTime.set(row.vid.toString(), row.start));
     
-    // Merge slots using the utility
     const merged = mergeConsecutiveSlots(rawData);
     
-    // 1. Create Header
     const thead = document.createElement("thead");
     const headerRow = document.createElement("tr");
     ["Name", "Showed", "Notes"].forEach((text, index) => {
@@ -88,7 +78,6 @@
     thead.appendChild(headerRow);
     table.appendChild(thead);
 
-    // 2. Create Body
     const tbody = document.createElement("tbody");
     
     merged.forEach(item => {
@@ -113,7 +102,8 @@
         nameDiv.appendChild(badge);
         nameDiv.appendChild(document.createTextNode(" "));
       }
-      nameDiv.textContent += formatName(item.name); // Safer than InnerHTML/TextNode mix
+      
+      nameDiv.textContent += formatName(item);
       nameTd.appendChild(nameDiv);
       tr.appendChild(nameTd);
 
@@ -126,13 +116,13 @@
       item.vids.forEach((vid, index) => {
         const state = item.states[index];
         const isChecked = (state !== 'late_canceled' && state !== 'noshowed');
+        const eventTime = vidToTime.get(vid.toString());
 
-        // Populate State Map
         visitState.set(vid.toString(), {
           vid: vid.toString(),
-          originalState: state, // Store the API state
-          isChecked: isChecked, // Store the UI state
-          eventIndex: index
+          originalState: state,
+          isChecked: isChecked,
+          eventTime: eventTime
         });
 
         const label = document.createElement("label");
@@ -143,7 +133,6 @@
         input.className = "custom-checkbox";
         input.dataset.role = "checkin";
         input.id = vid;
-        // We no longer store data attributes for logic, only for UI identification
         input.checked = isChecked;
 
         label.appendChild(input);
@@ -165,7 +154,7 @@
       notesBtn.onclick = () => {
         sessionStorage.setItem("noteContext", JSON.stringify({
           id: item.id,
-          name: item.name,
+          name: formatName(item),
           fullLevel: item.fullLevel,
           age: item.age
         }));
@@ -182,46 +171,50 @@
 
   updateTable(sessionStorage.getItem("schedule"));
 
-  // --- SUBMIT LOGIC (Refactored) ---
+  // --- SUBMIT LOGIC ---
   const submitBtn = document.getElementById("submit");
   if (submitBtn) {
     submitBtn.addEventListener("click", async () => {
       const dateVal = document.getElementById("dateInput").value;
-      
-      // Validation: Future dates
-      if (new Date() < new Date(dateVal)) {
-         updateTable(sessionStorage.getItem("schedule")); // Reset view
-         const table = document.getElementById("myTable");
-         // Quick UI feedback
-         const row = table.insertRow(0);
-         const cell = row.insertCell();
-         cell.colSpan = 3;
-         cell.textContent = "Cannot submit future attendance";
-         cell.style.fontWeight = "bold";
-         cell.style.color = "#850000";
-         await new Promise(r => setTimeout(r, 2000));
-         updateTable(sessionStorage.getItem("schedule"));
-         return;
+      const now = new Date();
+
+      // 1. Check for empty schedule
+      if (visitState.size === 0) {
+        updateNotification("No events to submit.", "info", 3000);
+        return;
       }
 
-      // UI Feedback
-      const table = document.getElementById("myTable");
-      table.innerHTML = "";
-      const row = table.insertRow();
-      const cell = row.insertCell();
-      cell.textContent = "Attendance Submitted!";
-      cell.style.fontWeight = "bold";
+      // 2. Validate Time (Last event must be in the past)
+      let latestEventTime = new Date(0); // Epoch
+      let latestEventStr = "";
 
-      // Calculate Diff using State Map
+      for (const record of visitState.values()) {
+        if (record.eventTime) {
+          // Parse "9:00 AM" + dateVal into a Date object
+          const timeStr = `${dateVal} ${record.eventTime}`;
+          const evtDate = new Date(timeStr);
+          if (!isNaN(evtDate) && evtDate > latestEventTime) {
+            latestEventTime = evtDate;
+            latestEventStr = record.eventTime;
+          }
+        }
+      }
+
+      // If the latest event hasn't started yet, block submission
+      if (latestEventTime > now) {
+        updateNotification(`Cannot submit future attendance (Last event: ${latestEventStr})`, "error", 4000);
+        return;
+      }
+
+      // 3. Calculate Updates
       const updates = [];
       for (const record of visitState.values()) {
-        const { vid, originalState, isChecked, eventIndex } = record;
+        const { vid, originalState, isChecked, eventTime } = record;
         
         let newState;
         if (isChecked) {
           newState = "complete";
         } else {
-          // Preserve late_canceled if it was already that way, otherwise mark noshow
           if (originalState === "late_canceled") {
             newState = "late_canceled"; 
           } else {
@@ -235,73 +228,135 @@
         } else if (newState === "noshow") {
           if (originalState !== "noshowed") needsUpdate = true;
         }
-        // late_canceled never needs update in this logic flow as we don't change it to late_canceled, we just preserve it.
 
         if (needsUpdate) {
-          updates.push({ vid, newState, originalState, eventIndex });
+          updates.push({ vid, newState, originalState, eventTime });
         }
       }
 
-      // Process Updates
+      // 4. Check for changes
+      if (updates.length === 0) {
+        updateNotification("No changes to submit.", "info", 3000);
+        return;
+      }
+
+      // 5. Submit Process
+      updateNotification("Submitting Attendance...", "info", 0); // 0 = Persistent
+
       const headers = {
         "Authorization": `Bearer ${localStorage.getItem("access_token")}`,
         "Content-Type": "application/json"
       };
 
-      // Group by event index to handle multi-lesson blocks nicely
       const rounds = {};
       updates.forEach(u => {
-        if (!rounds[u.eventIndex]) rounds[u.eventIndex] = [];
-        rounds[u.eventIndex].push(u);
+        const key = u.eventTime || "default";
+        if (!rounds[key]) rounds[key] = [];
+        rounds[key].push(u);
       });
       
-      // PARALLEL EXECUTION OF EVENTS, SEQUENTIAL EXECUTION OF STUDENTS WITHIN EVENT
-      // This ensures we don't hit race conditions for a single event, but keeps the app fast.
-      await Promise.all(Object.values(rounds).map(async (group) => {
-          for (const u of group) {
-            // If strictly needed to reset before changing state (Pike13 quirk)
-            if (u.originalState !== 'registered') {
+      try {
+        await Promise.all(Object.values(rounds).map(async (group) => {
+            for (const u of group) {
+              if (u.originalState !== 'registered') {
+                await fetch(`https://mcdonaldswimschool.pike13.com/api/v2/desk/visits/${u.vid}`, {
+                  method: "PUT",
+                  headers,
+                  body: JSON.stringify({ visit: { state_event: "reset" } })
+                }).catch(e => console.error(e));
+              }
+              
               await fetch(`https://mcdonaldswimschool.pike13.com/api/v2/desk/visits/${u.vid}`, {
                 method: "PUT",
                 headers,
-                body: JSON.stringify({ visit: { state_event: "reset" } })
+                body: JSON.stringify({ visit: { state_event: u.newState } })
               }).catch(e => console.error(e));
-            }
-            
-            await fetch(`https://mcdonaldswimschool.pike13.com/api/v2/desk/visits/${u.vid}`, {
-              method: "PUT",
-              headers,
-              body: JSON.stringify({ visit: { state_event: u.newState } })
-            }).catch(e => console.error(e));
 
-            if (u.newState === "noshow") {
-              await fetch(`https://mcdonaldswimschool.pike13.com/api/v2/desk/punches`, {
-                method: "POST",
-                headers,
-                body: JSON.stringify({ punch: { visit_id: u.vid } })
-              }).catch(e => console.error(e));
+              if (u.newState === "noshow") {
+                await fetch(`https://mcdonaldswimschool.pike13.com/api/v2/desk/punches`, {
+                  method: "POST",
+                  headers,
+                  body: JSON.stringify({ punch: { visit_id: u.vid } })
+                }).catch(e => console.error(e));
+              }
+              await new Promise(r => setTimeout(r, 500));
             }
-          }
-      }));
-      
-      await new Promise(r => setTimeout(r, 500));
-      document.getElementById("dateInput").dispatchEvent(new Event("change"));
+        }));
+
+        updateNotification("Attendance Submitted!", "success", 3000);
+        await new Promise(r => setTimeout(r, 500));
+        document.getElementById("dateInput").dispatchEvent(new Event("change"));
+        
+      } catch (e) {
+        console.error(e);
+        updateNotification("Error submitting attendance.", "error", 4000);
+      }
     });
   }
 
-  // --- RESET LOGIC ---
+  // --- DYNAMIC NOTIFICATION HELPER ---
+  let notificationTimeout;
+
+  function updateNotification(message, type = "info", duration = 3000) {
+    let container = document.querySelector(".notification-container");
+    // Ensure container exists
+    if (!container) {
+      container = document.createElement("div");
+      container.className = "notification-container";
+      document.body.appendChild(container);
+    }
+
+    // Try to find existing banner
+    let notification = container.querySelector(".notification-banner");
+    
+    // If not found, create it using global helper or manually if needed
+    // We'll create it manually here to ensure control over the instance
+    if (!notification) {
+      notification = document.createElement("div");
+      notification.className = `notification-banner ${type}`;
+      
+      const messageEl = document.createElement("span");
+      messageEl.className = "notification-message";
+      
+      const closeBtn = document.createElement("button");
+      closeBtn.className = "notification-close";
+      closeBtn.innerHTML = "&times;";
+      closeBtn.onclick = () => {
+        notification.remove();
+        if (notificationTimeout) clearTimeout(notificationTimeout);
+      };
+
+      notification.appendChild(messageEl);
+      notification.appendChild(closeBtn);
+      container.appendChild(notification);
+    } else {
+      // Update existing
+      notification.className = `notification-banner ${type}`;
+    }
+
+    // Update Text
+    notification.querySelector(".notification-message").textContent = message;
+
+    // Handle Timeout
+    if (notificationTimeout) clearTimeout(notificationTimeout);
+    
+    if (duration > 0) {
+      notificationTimeout = setTimeout(() => {
+        notification.style.animation = "fadeOut 0.3s ease-out forwards";
+        notification.addEventListener("animationend", () => {
+          notification.remove();
+          if (container.children.length === 0) container.remove();
+        }, { once: true });
+      }, duration);
+    }
+  }
+
   const resetBtn = document.getElementById("reset");
   if (resetBtn) {
     resetBtn.addEventListener("click", async () => {
-      // Gather VIDs directly from state
-      const vidsToReset = Array.from(visitState.keys());
+      updateNotification("Resetting Attendance...", "info", 0);
       
-      const table = document.getElementById("myTable");
-      table.innerHTML = "";
-      const row = table.insertRow();
-      const cell = row.insertCell();
-      cell.textContent = "Attendance Reset!";
-      cell.style.fontWeight = "bold";
+      const vidsToReset = Array.from(visitState.keys());
       
       await Promise.allSettled(vidsToReset.map(vid => 
         fetch(`https://mcdonaldswimschool.pike13.com/api/v2/desk/visits/${vid}`, {
@@ -312,6 +367,7 @@
         })
       ));
       
+      updateNotification("Attendance Reset!", "success", 3000);
       await new Promise(resolve => setTimeout(resolve, 500));
       document.getElementById("dateInput").dispatchEvent(new Event("change"));
     });

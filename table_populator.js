@@ -39,12 +39,10 @@
       return;
     }
 
-    // --- Data Processing (Via Utils) ---
     const mergedRaw = mergeConsecutiveSlots(data);
     
-    // Post-process for "CANCELED" logic specific to this view
     const merged = mergedRaw.map(row => {
-      const state = row.states[0]; // Check state of first slot in block
+      const state = row.states[0]; 
       if (state == "late_canceled" || state == "canceled") {
         return { 
           ...row, 
@@ -56,11 +54,11 @@
       }
       return {
         ...row,
-        name: formatName(row.name)
+        name: formatName(row) 
       };
     });
     
-    // Group by Start Time for visual grid
+    // Group by Start Time
     const groups = merged.reduce((acc, r) => {
       (acc[r.start] ??= []).push(r);
       return acc;
@@ -69,7 +67,7 @@
     // Create Header
     const thead = document.createElement("thead");
     const headerRow = document.createElement("tr");
-    ["Start", "Min.", "Name", "Lvl", "Age"].forEach(text => {
+    ["Time", "Name", "Lvl", "Age"].forEach(text => {
       const th = document.createElement("th");
       th.textContent = text;
       headerRow.appendChild(th);
@@ -77,32 +75,50 @@
     thead.appendChild(headerRow);
     table.appendChild(thead);
 
-    // Create Body
     const tbody = document.createElement("tbody");
 
-    Object.entries(groups).forEach(([start, rows]) => {
+    // Convert groups to array for index tracking (striping)
+    Object.entries(groups).forEach(([start, rows], groupIndex) => {
       const duration = (new Date(`Jan 1 2000 ${rows.length === 1 ? rows[0].end : rows.at(-1).end}`) - new Date(`Jan 1 2000 ${start}`)) / 60000;
       
-      const tr = document.createElement("tr");
-      
-      // 1. Start Time
-      const startTd = document.createElement("td");
-      startTd.textContent = start.split(" ")[0];
-      tr.appendChild(startTd);
+      const stripeClass = groupIndex % 2 === 0 ? "group-even" : "group-odd";
 
-      // 2. Duration (Min)
-      const durTd = document.createElement("td");
-      durTd.textContent = duration;
-      tr.appendChild(durTd);
-
-      // 3. Name
-      const nameTd = document.createElement("td");
       rows.forEach((r, idx) => {
-        if (idx > 0) nameTd.appendChild(document.createElement("br"));
+        const tr = document.createElement("tr");
+        tr.classList.add(stripeClass);
+        
+        // --- 1. Time Column (First row only) ---
+        if (idx === 0) {
+          const timeTd = document.createElement("td");
+          timeTd.classList.add("time-cell");
+          timeTd.style.textAlign = "center";
+          
+          if (rows.length > 1) {
+            timeTd.style.gridRow = `span ${rows.length}`;
+            timeTd.style.alignSelf = "center"; 
+          }
+
+          const timeVal = document.createElement("div");
+          timeVal.textContent = start.split(" ")[0];
+          timeVal.style.fontWeight = "800";
+          timeTd.appendChild(timeVal);
+
+          const durVal = document.createElement("div");
+          durVal.className = "muted";
+          durVal.style.fontSize = "0.85em";
+          durVal.textContent = `+${duration}`;
+          timeTd.appendChild(durVal);
+          
+          tr.appendChild(timeTd);
+        }
+
+        // --- 2. Name ---
+        const nameTd = document.createElement("td");
+        // Apply separator to Name, Level, and Age if it's NOT the last student
+        if (rows.length > 1 && idx < rows.length - 1) nameTd.classList.add("row-separator");
         
         const span = document.createElement("span");
         span.className = "name-text";
-        
         if (r.isNew) {
             const badge = document.createElement("span");
             badge.className = "badge-new";
@@ -110,29 +126,24 @@
             span.appendChild(badge);
             span.appendChild(document.createTextNode(" "));
         }
-        
         span.appendChild(document.createTextNode(r.name));
         nameTd.appendChild(span);
-      });
-      tr.appendChild(nameTd);
+        tr.appendChild(nameTd);
 
-      // 4. Level
-      const lvlTd = document.createElement("td");
-      rows.forEach((r, idx) => {
-        if (idx > 0) lvlTd.appendChild(document.createElement("br"));
+        // --- 3. Level ---
+        const lvlTd = document.createElement("td");
+        if (rows.length > 1 && idx < rows.length - 1) lvlTd.classList.add("row-separator");
         lvlTd.appendChild(document.createTextNode(r.shortLevel || ""));
-      });
-      tr.appendChild(lvlTd);
+        tr.appendChild(lvlTd);
 
-      // 5. Age
-      const ageTd = document.createElement("td");
-      rows.forEach((r, idx) => {
-        if (idx > 0) ageTd.appendChild(document.createElement("br"));
+        // --- 4. Age ---
+        const ageTd = document.createElement("td");
+        if (rows.length > 1 && idx < rows.length - 1) ageTd.classList.add("row-separator");
         ageTd.appendChild(document.createTextNode(r.age || ""));
-      });
-      tr.appendChild(ageTd);
+        tr.appendChild(ageTd);
 
-      tbody.appendChild(tr);
+        tbody.appendChild(tr);
+      });
     });
 
     table.appendChild(tbody);

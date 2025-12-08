@@ -1,55 +1,7 @@
 // --- CONSTANTS ---
 const PIKE13_API_V2 = "https://mcdonaldswimschool.pike13.com/api/v2/desk/";
 const PIKE13_API_V3 = "https://mcdonaldswimschool.pike13.com/desk/api/v3/";
-//Excluding Note Time, BONUS TIME, Bonus Time, PAID BREAK, Open
 const EXCLUDED_IDS = [11485475, 11559838, 13602611, 13167161, ""];
-
-// Correctly encrypted token (XOR of Token and UUID) provided by user
-const ENCRYPTED_REPORTS_TOKEN = "536d73072e15275e6e0a40414a1559225c01426d4464767b2543636053010e637f5b0a750f52532b";
-
-// --- SECURITY HELPERS ---
-
-/**
- * Simple XOR decrypt/encrypt function.
- * @param {string} hex - The hex encoded string to decrypt
- * @param {string} key - The UUID string to use as key
- */
-function xorDecrypt(hex, key) {
-  let result = "";
-  for (let i = 0; i < hex.length; i += 2) {
-    const charCode = parseInt(hex.substr(i, 2), 16);
-    const keyChar = key.charCodeAt((i / 2) % key.length);
-    result += String.fromCharCode(charCode ^ keyChar);
-  }
-  return result;
-}
-
-/**
- * Retrieves the Reports API Token.
- */
-async function getReportsToken() {
-  const cachedToken = localStorage.getItem("decrypted_reports_token");
-  if (cachedToken) return cachedToken;
-
-  try {
-    console.log("Fetching key decryption material...");
-    const response = await pikeFetch("custom_fields"); 
-    if (!response || !response.custom_fields) throw new Error("Failed to load custom fields");
-
-    const field = response.custom_fields.find(f => f.id === 198765);
-    if (!field || !field.why) throw new Error("InternalAPIKey field not found or empty");
-
-    const uuid = field.why.trim(); 
-    const decryptedToken = xorDecrypt(ENCRYPTED_REPORTS_TOKEN, uuid);
-
-    localStorage.setItem("decrypted_reports_token", decryptedToken);
-    return decryptedToken;
-
-  } catch (e) {
-    console.error("Critical Security Error: Could not decrypt reports token.", e);
-    return null;
-  }
-}
 
 // --- API HELPERS ---
 async function pikeFetch(endpoint, method = "GET", body = null) {
@@ -62,6 +14,7 @@ async function pikeFetch(endpoint, method = "GET", body = null) {
   if (body) config.body = JSON.stringify(body);
 
   const url = endpoint.startsWith("http") ? endpoint : `${PIKE13_API_V2}${endpoint}`;
+
   const response = await fetch(url, config);
   
   if (!response.ok) {
@@ -73,27 +26,20 @@ async function pikeFetch(endpoint, method = "GET", body = null) {
 }
 
 // --- DATA PROCESSING HELPERS ---
-
-/**
- * Merges consecutive time slots for the same person into a single block.
- * @param {Array} data - The raw schedule array
- * @returns {Array} - Array of merged objects with `vids` and `states` arrays
- */
 function mergeConsecutiveSlots(data) {
   if (!data || !data.length) return [];
   
   const merged = [];
   for (let i = 0; i < data.length;) {
     const current = data[i];
-    // Destructure common fields to keep in the parent object
-    const { id, name, shortLevel, isNew, age, fullLevel, start, end, vid, state } = current;
+    // Keep raw fields including first/last name
+    const { id, name, firstName, lastName, shortLevel, isNew, age, fullLevel, start, end, vid, state } = current;
     
     let blockEnd = end;
     let vids = [vid];
     let states = [state];
     let j = i + 1;
     
-    // Look ahead for consecutive slots with the same ID
     while (
       j < data.length &&
       data[j].id === id &&
@@ -106,7 +52,7 @@ function mergeConsecutiveSlots(data) {
     }
     
     merged.push({
-      id, name, shortLevel, isNew, age, fullLevel, start,
+      id, name, firstName, lastName, shortLevel, isNew, age, fullLevel, start,
       end: blockEnd,
       vids,
       states
@@ -118,12 +64,25 @@ function mergeConsecutiveSlots(data) {
 
 // --- FORMATTING HELPERS ---
 
-function formatName(name) {
-  if (!name) return "";
-  const parts = name.trim().split(/\s+/);
-  const relevantParts = parts.length > 1 ? [parts[0], parts[parts.length - 1]] : [parts[0]];
-  
-  return relevantParts.map(x => {
+function formatName(personObj) {
+  // If a string is passed directly (legacy support)
+  if (typeof personObj === 'string') {
+    return capitalizeWords(personObj);
+  }
+
+  // Prefer distinct fields
+  if (personObj.firstName && personObj.lastName) {
+    return `${capitalizeWords(personObj.firstName)} ${capitalizeWords(personObj.lastName)}`;
+  }
+
+  // Fallback to name string
+  return capitalizeWords(personObj.name || "");
+}
+
+function capitalizeWords(str) {
+  if (!str) return "";
+  const parts = str.trim().split(/\s+/);
+  return parts.map(x => {
       return x[0].toUpperCase() + 
              (/^[A-Z]+$/.test(x) ? x.slice(1).toLowerCase() : x.slice(1));
   }).join(" ");
@@ -132,24 +91,24 @@ function formatName(name) {
 function getShortLevel(fullLevel, ageYears) {
   if (!fullLevel) return "...";
 
+  // 1. Check for "Level \d" pattern first
+  // Matches "Level 1", "Level 5 (Stroke)", etc.
+  const levelMatch = fullLevel.match(/^Level\s+(\d+)/i);
+  if (levelMatch) {
+    return levelMatch[1]; // Returns just the digit (e.g., "1", "5")
+  }
+
+  // 2. Keep specific age-based overrides for Baby/Tots
+  // These usually don't have "Level X" in the name
   if (ageYears < 2) {
     return "B"; 
   } else if (ageYears < 4) {
     return "T"; 
-  } else {
-    const upperLvl = fullLevel.toUpperCase();
-    if (upperLvl.includes("BABY") || upperLvl.includes("TOTS")) {
-       return "1"; 
-    } else {
-       if (fullLevel.startsWith("Level ")) {
-         const match = fullLevel.match(/\d+/);
-         return match ? match[0] : fullLevel.charAt(0);
-       } else {
-         const capitals = fullLevel.match(/[A-Z]/g);
-         return capitals ? capitals.join("") : fullLevel.charAt(0);
-       }
-    }
-  }
+  } 
+
+  // 3. Fallback to Acronym (Capital letters) for things like "Adult Coaching" -> "AC"
+  const capitals = fullLevel.match(/[A-Z]/g);
+  return capitals ? capitals.join("") : fullLevel.charAt(0);
 }
 
 function normalizeSchedule(scheduleData) {
@@ -169,7 +128,6 @@ function normalizeSchedule(scheduleData) {
 }
 
 // --- UI HELPERS ---
-
 function showNotification(message, type = "info", duration = 3000) {
   let container = document.querySelector(".notification-container");
   if (!container) {
