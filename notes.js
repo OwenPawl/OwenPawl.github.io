@@ -128,26 +128,23 @@
     if (!skills || skills.length === 0) {
       container.innerHTML = "<p>No skills found for this level.</p>";
     } else {
+      // --- REFACTORED TO GRID ---
       let html = `
-        <div class="checklist-section">
-          <div class="checklist-header">Skills Checklist</div>
+        <div class="checklist-grid">
+          <div class="col-header">Skill</div>
+          <div class="col-header center">Worked</div>
+          <div class="col-header center">Next</div>
       `;
 
       skills.forEach((skill) => {
         const safeSkill = skill.replace(/"/g, '&quot;');
         html += `
-          <div class="skill-item">
-            <span class="skill-label">${skill}</span>
-            <div class="skill-controls">
-              <div class="checkbox-wrapper">
-                <label class="checkbox-label">Worked</label>
-                <input type="checkbox" data-skill="${safeSkill}" class="worked-on">
-              </div>
-              <div class="checkbox-wrapper">
-                <label class="checkbox-label">Next</label>
-                <input type="checkbox" data-skill="${safeSkill}" class="next-time">
-              </div>
-            </div>
+          <div class="skill-label">${skill}</div>
+          <div class="skill-check">
+            <input type="checkbox" data-skill="${safeSkill}" class="custom-checkbox worked-on">
+          </div>
+          <div class="skill-check">
+            <input type="checkbox" data-skill="${safeSkill}" class="custom-checkbox next-time">
           </div>
         `;
       });
@@ -158,7 +155,7 @@
 
   renderChecklist(currentDisplayLevel);
 
-  // Update Checklist immediately on dropdown change, BUT DO NOT SAVE YET
+  // Update Checklist immediately on dropdown change
   if (!isLocked) {
     levelSelect.addEventListener("change", () => {
       renderChecklist(levelSelect.value);
@@ -227,16 +224,14 @@
       if (!isLocked && customFieldInstanceId && newLevel !== originalLevel) {
           console.log(`Updating level from ${originalLevel} to ${newLevel}`);
           
-          // Use raw fetch for FormData because PikeFetch assumes JSON
           const fd = new FormData();
-          fd.append("_method", "patch"); // Rails shim
-          // The structure for updating existing custom field requires the ID of the field INSTANCE
+          fd.append("_method", "patch"); 
           fd.append("person[person_custom_fields_attributes][0][id]", customFieldInstanceId);
           fd.append("person[person_custom_fields_attributes][0][custom_field_id]", "180098");
           fd.append("person[person_custom_fields_attributes][0][value]", newLevel);
 
           const levelUpdate = fetch(`${PIKE13_API_V2}people/${id}`, {
-              method: "POST", // POST with _method=patch for Rails
+              method: "POST", 
               headers: { "Authorization": `Bearer ${localStorage.getItem("access_token")}` },
               body: fd
           }).then(async r => {
@@ -252,7 +247,6 @@
       showNotification("Submitted successfully!", "success");
       submitBtn.textContent = "Submitted";
       
-      // Update session context if level changed, so if they come back it's correct
       if (!isLocked && newLevel !== originalLevel) {
         noteData.fullLevel = newLevel;
         sessionStorage.setItem("noteContext", JSON.stringify(noteData));

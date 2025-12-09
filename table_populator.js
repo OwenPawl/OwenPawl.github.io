@@ -1,11 +1,9 @@
 {
   const handleTableLoading = () => {
-    const table = document.getElementById("myTable");
-    if (table) {
-      table.innerHTML = "";
-      const row = table.insertRow();
-      const cell = row.insertCell();
-      cell.innerHTML = "<b>Loading...</b>";
+    // Look for grid container instead of table
+    const container = document.getElementById("scheduleContainer");
+    if (container) {
+      container.innerHTML = "<div style='padding:20px; text-align:center;'><b>Loading...</b></div>";
     }
   };
 
@@ -26,16 +24,27 @@
   };
 
   function updateTable(schedule) {
-    const table = document.getElementById("myTable");
-    table.innerHTML = "";
+    // If container doesn't exist (because HTML might still have table), create it or find wrapper
+    let container = document.getElementById("scheduleContainer");
+    if (!container) {
+      // Logic to swap table for div if running for first time
+      const table = document.getElementById("myTable");
+      if (table) {
+        container = document.createElement("div");
+        container.id = "scheduleContainer";
+        container.className = "schedule-grid";
+        table.parentNode.replaceChild(container, table);
+      } else {
+        return; // Safety
+      }
+    }
+    
+    container.innerHTML = "";
 
     const data = normalizeSchedule(schedule);
     
     if (!data.length) {
-      const row = table.insertRow();
-      const cell = row.insertCell();
-      cell.textContent = "No Lessons For This Day";
-      cell.style.fontWeight = "bold";
+      container.innerHTML = "<div style='grid-column:1/-1; padding:20px; text-align:center; font-weight:bold;'>No Lessons For This Day</div>";
       return;
     }
 
@@ -64,58 +73,49 @@
       return acc;
     }, {});
     
-    // Create Header
-    const thead = document.createElement("thead");
-    const headerRow = document.createElement("tr");
-    ["Time", "Name", "Lvl", "Age"].forEach(text => {
-      const th = document.createElement("th");
-      th.textContent = text;
-      headerRow.appendChild(th);
+    // Create Header Row (DIVs)
+    const headers = ["Time", "Name", "Lvl", "Age"];
+    headers.forEach(text => {
+      const headerDiv = document.createElement("div");
+      headerDiv.className = "header-cell";
+      headerDiv.textContent = text;
+      container.appendChild(headerDiv);
     });
-    thead.appendChild(headerRow);
-    table.appendChild(thead);
 
-    const tbody = document.createElement("tbody");
-
-    // Convert groups to array for index tracking (striping)
+    // Generate Rows
     Object.entries(groups).forEach(([start, rows], groupIndex) => {
       const duration = (new Date(`Jan 1 2000 ${rows.length === 1 ? rows[0].end : rows.at(-1).end}`) - new Date(`Jan 1 2000 ${start}`)) / 60000;
-      
       const stripeClass = groupIndex % 2 === 0 ? "group-even" : "group-odd";
 
       rows.forEach((r, idx) => {
-        const tr = document.createElement("tr");
-        tr.classList.add(stripeClass);
-        
         // --- 1. Time Column (First row only) ---
         if (idx === 0) {
-          const timeTd = document.createElement("td");
-          timeTd.classList.add("time-cell");
-          timeTd.style.textAlign = "center";
+          const timeDiv = document.createElement("div");
+          timeDiv.className = `schedule-cell time-cell ${stripeClass}`;
           
           if (rows.length > 1) {
-            timeTd.style.gridRow = `span ${rows.length}`;
-            timeTd.style.alignSelf = "center"; 
+            timeDiv.style.gridRow = `span ${rows.length}`;
+            timeDiv.style.alignSelf = "center"; 
           }
 
           const timeVal = document.createElement("div");
           timeVal.textContent = start.split(" ")[0];
           timeVal.style.fontWeight = "800";
-          timeTd.appendChild(timeVal);
+          timeDiv.appendChild(timeVal);
 
           const durVal = document.createElement("div");
           durVal.className = "muted";
           durVal.style.fontSize = "0.85em";
           durVal.textContent = `+${duration}`;
-          timeTd.appendChild(durVal);
+          timeDiv.appendChild(durVal);
           
-          tr.appendChild(timeTd);
+          container.appendChild(timeDiv);
         }
 
         // --- 2. Name ---
-        const nameTd = document.createElement("td");
-        // Apply separator to Name, Level, and Age if it's NOT the last student
-        if (rows.length > 1 && idx < rows.length - 1) nameTd.classList.add("row-separator");
+        const nameDiv = document.createElement("div");
+        nameDiv.className = `schedule-cell ${stripeClass}`;
+        if (rows.length > 1 && idx < rows.length - 1) nameDiv.classList.add("row-separator");
         
         const span = document.createElement("span");
         span.className = "name-text";
@@ -127,26 +127,24 @@
             span.appendChild(document.createTextNode(" "));
         }
         span.appendChild(document.createTextNode(r.name));
-        nameTd.appendChild(span);
-        tr.appendChild(nameTd);
+        nameDiv.appendChild(span);
+        container.appendChild(nameDiv);
 
         // --- 3. Level ---
-        const lvlTd = document.createElement("td");
-        if (rows.length > 1 && idx < rows.length - 1) lvlTd.classList.add("row-separator");
-        lvlTd.appendChild(document.createTextNode(r.shortLevel || ""));
-        tr.appendChild(lvlTd);
+        const lvlDiv = document.createElement("div");
+        lvlDiv.className = `schedule-cell ${stripeClass}`;
+        if (rows.length > 1 && idx < rows.length - 1) lvlDiv.classList.add("row-separator");
+        lvlDiv.textContent = r.shortLevel || "";
+        container.appendChild(lvlDiv);
 
         // --- 4. Age ---
-        const ageTd = document.createElement("td");
-        if (rows.length > 1 && idx < rows.length - 1) ageTd.classList.add("row-separator");
-        ageTd.appendChild(document.createTextNode(r.age || ""));
-        tr.appendChild(ageTd);
-
-        tbody.appendChild(tr);
+        const ageDiv = document.createElement("div");
+        ageDiv.className = `schedule-cell ${stripeClass}`;
+        if (rows.length > 1 && idx < rows.length - 1) ageDiv.classList.add("row-separator");
+        ageDiv.textContent = r.age || "";
+        container.appendChild(ageDiv);
       });
     });
-
-    table.appendChild(tbody);
   };
   
   updateTable(sessionStorage.getItem("schedule"));

@@ -72,6 +72,7 @@
     ["Name", "Showed", "Notes"].forEach((text, index) => {
       const th = document.createElement("th");
       th.textContent = text;
+      // Fixed width styles are in CSS, but this ensures generic alignment
       if (index > 0) th.style.textAlign = "center";
       headerRow.appendChild(th);
     });
@@ -99,11 +100,13 @@
         const badge = document.createElement("span");
         badge.className = "badge-new";
         badge.textContent = "NEW";
+        // FIX: Append badge element, don't overwrite textContent later
         nameDiv.appendChild(badge);
         nameDiv.appendChild(document.createTextNode(" "));
       }
       
-      nameDiv.textContent += formatName(item);
+      // FIX: Append text node instead of += to preserve badge
+      nameDiv.appendChild(document.createTextNode(formatName(item)));
       nameTd.appendChild(nameDiv);
       tr.appendChild(nameTd);
 
@@ -310,7 +313,6 @@
     let notification = container.querySelector(".notification-banner");
     
     // If not found, create it using global helper or manually if needed
-    // We'll create it manually here to ensure control over the instance
     if (!notification) {
       notification = document.createElement("div");
       notification.className = `notification-banner ${type}`;

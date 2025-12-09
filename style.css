@@ -5,6 +5,7 @@
   --blue: #007bb4;
   --blue-strong: #006694;
   --green: #00833d;
+  /* Removed --teal */
   --surface: #f7fbff;
   --ink: #0b2a3c;
   --muted: #6b7a86;
@@ -167,6 +168,15 @@ body {
   line-height: 1.24;
 }
 
+/* Header Styling (Applied to both but overridden by grid in schedule) */
+.data-table th {
+  color: var(--muted);
+  text-transform: uppercase;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+}
+
 /* Attendance Table Specifics */
 .attendance-table tbody tr:nth-child(even) > td,
 .attendance-table tbody tr:nth-child(even) > th {
@@ -189,8 +199,8 @@ body {
   border-radius: 999px;
   letter-spacing: 0.5px;
   text-transform: uppercase;
-  /* Prevent badge itself from shrinking, but allow it to flow */
   flex-shrink: 0; 
+  margin-right: 4px;
 }
 
 .muted { color: var(--muted); }
@@ -203,83 +213,77 @@ body {
   overflow-x: auto;
 }
 
-/* --- SCHEDULE GRID SYSTEM --- */
-.schedule-table {
+/* --- SCHEDULE GRID SYSTEM (DIV BASED) --- */
+.schedule-grid {
   display: grid;
-  /* Reduced widths for Time, Level, Age to maximize Name space */
-  /* 60px | Auto | 35px | 35px */
-  grid-template-columns: 60px minmax(0, 1fr) 35px 35px;
+  /* Time: 60px fixed
+     Name: 1fr (takes all remaining space)
+     Lvl: auto (fits content, min 30px)
+     Age: auto (fits content, min 30px)
+  */
+  grid-template-columns: 60px 1fr auto auto;
   width: 100%;
-}
-
-.schedule-table thead,
-.schedule-table tbody,
-.schedule-table tr {
-  display: contents; 
+  background: #f9fcff; 
+  border-radius: 12px; 
 }
 
 /* Group Striping: Even groups get background */
-.schedule-table tbody tr:nth-child(even) > td { background-color: transparent; }
-.schedule-table .group-even > td {
+.schedule-cell.group-even {
   background-color: rgba(0, 123, 180, 0.03);
 }
 
-.schedule-table th,
-.schedule-table td {
+.schedule-header {
+  display: contents;
+}
+
+.header-cell {
+  padding: 8px 6px; /* slightly more side padding */
+  margin-bottom: 4px;
+  border-bottom: 2px solid rgba(0, 123, 180, 0.15);
+  color: var(--muted);
+  text-transform: uppercase;
+  font-size: 13px;
+  font-weight: 800;
+  text-align: left;
+  display: flex;
+  align-items: flex-end;
+}
+
+.schedule-cell {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: 6px 4px; /* Reduced side padding slightly */
+  padding: 6px 6px; /* Dynamic width needs padding */
   overflow: hidden;
-}
-
-.schedule-table th {
-  text-align: left;
-  border-bottom: 2px solid rgba(0, 123, 180, 0.15);
-  padding-bottom: 8px;
-  margin-bottom: 4px;
-  font-weight: 800;
-  color: var(--muted);
-  font-size: 14px;
-  text-transform: uppercase;
-}
-
-/* Default Cell Color (Time, Level, Age) = Ink */
-.schedule-table td {
   font-weight: 700;
-  color: var(--ink); 
+  color: var(--ink); /* Default Ink */
+  min-width: 0; /* Critical for grid text overflow */
 }
 
-/* NAME ONLY: Blue, with 2-line wrap */
 .name-text {
   display: -webkit-box;
-  -webkit-line-clamp: 2; /* Limit to 2 lines */
-  line-clamp: 2; /* Standard property */
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;
   width: 100%;
   color: var(--blue);
-  white-space: normal; /* Allow wrapping */
+  white-space: normal;
   line-height: 1.2;
+  hyphens: auto; 
+  word-wrap: break-word;
 }
 
-/* Time Cell is Ink/Black */
-.schedule-table .time-cell {
-  color: var(--ink);
+.time-cell { 
+  color: var(--ink); 
+  text-align: center;
+  align-items: center;
 }
 
-/* Separator Line */
 .row-separator {
   box-shadow: inset 0 -1px 0 0 rgba(11, 42, 60, 0.2) !important;
   z-index: 1; 
-}
-
-.schedule-table :is(th, td):only-child {
-  grid-column: 1 / -1;
-  align-items: center;
-  text-align: center;
-  background-color: transparent;
 }
 
 /* --- TEXT UTILS --- */
@@ -417,7 +421,35 @@ body.pull-refresh-ready .pull-indicator {
   justify-content: center;
 }
 
-/* --- ATTENDANCE COLUMNS (Sticky) --- */
+/* --- ATTENDANCE COLUMNS (Sticky & Sizing) --- */
+/* Ensure the table layout respects expanding name column */
+.attendance-table {
+  table-layout: fixed; /* Allow specific widths */
+}
+
+/* Name Column: Expands */
+.attendance-table td:first-child,
+.attendance-table th:first-child {
+  width: auto; /* Takes remaining space */
+}
+
+/* Showed Column: Fixed */
+.checkins-cell, 
+.attendance-table th:nth-child(2) { 
+  width: 108px; 
+  width: 108px; 
+  padding-right: 0; 
+  text-align: right; 
+}
+
+/* Notes Column: Fixed */
+.notes-cell,
+.attendance-table th:nth-child(3) {
+  width: 54px;
+  min-width: 54px;
+  text-align: center;
+}
+
 .actions-cell {
   position: sticky;
   right: 0;
@@ -426,17 +458,14 @@ body.pull-refresh-ready .pull-indicator {
 }
 
 .action-stack { display: flex; gap: 10px; justify-content: flex-start; align-items: flex-start; }
-.checkin-stack { display: flex; flex-direction: column; gap: 6px; align-items: flex-end; width: 100%; }
+.checkin-stack { display: flex; flex-direction: column; gap: 6px; align-items: flex-end; width: 100%; align-items: center; }
 
 .checkins-cell { 
   position: sticky; 
   right: 54px; 
   background: linear-gradient(90deg, rgba(249,252,255,0.9), #f9fcff 50%); 
   box-shadow: -6px 0 10px rgba(0, 59, 92, 0.04); 
-  width: 108px; 
-  padding-right: 0; 
-  text-align: right; 
-  display: flex;
+  display: flex; /* Flex required for sticky + vertical align in some browsers */
   justify-content: center;
   flex-direction: column;
 }
@@ -446,9 +475,7 @@ body.pull-refresh-ready .pull-indicator {
   right: 0; 
   background: linear-gradient(90deg, rgba(249,252,255,0.92), #f9fcff 70%); 
   box-shadow: -6px 0 10px rgba(0, 59, 92, 0.04); 
-  width: 54px; 
   padding: 4px 2px 4px 0; 
-  text-align: center; 
 }
 
 /* --- MOBILE QUERIES --- */
@@ -470,8 +497,9 @@ body.pull-refresh-ready .pull-indicator {
   appearance: none;
   background-color: transparent;
   margin: 4px 2px;
-  width: 44px;
-  height: 44px;
+  width: 44px !important; /* Force width */
+  height: 44px !important; /* Force height */
+  flex: 0 0 44px; /* Prevent flex shrinking */
   border: 2px solid var(--muted);
   border-radius: 8px;
   display: grid;
@@ -479,7 +507,6 @@ body.pull-refresh-ready .pull-indicator {
   cursor: pointer;
   transition: all 0.2s ease;
   position: relative;
-  flex: 0 0 auto;
 }
 
 .custom-checkbox::after {
@@ -495,6 +522,7 @@ body.pull-refresh-ready .pull-indicator {
     left: 10px;
 }
 
+/* Default Checked (Green) - used in Attendance */
 .custom-checkbox:checked {
     background-color: var(--green);
     border-color: var(--green);
@@ -503,7 +531,45 @@ body.pull-refresh-ready .pull-indicator {
     transform: rotate(-45deg) scale(1);
 }
 
-.checkin-stack {
+/* Note Specific: Next Time (Blue) */
+.custom-checkbox.next-time:checked {
+    background-color: var(--blue);
+    border-color: var(--blue);
+}
+
+/* --- NOTES CHECKLIST GRID --- */
+.checklist-grid {
+  display: grid;
+  /* 1fr | 60px | 60px - Giving more space for 44px boxes + padding */
+  grid-template-columns: 1fr 60px 60px;
+  gap: 8px 8px; /* Increased gap */
+  align-items: center;
+  margin-top: 12px;
+}
+
+.checklist-grid .col-header {
+  font-size: 13px;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding-bottom: 6px;
+  border-bottom: 1px solid rgba(0, 123, 180, 0.1);
+}
+
+.checklist-grid .col-header.center {
+  text-align: center;
+}
+
+.checklist-grid .skill-label {
+  font-weight: 700;
+  color: var(--ink); /* Changed to Ink */
+  font-size: 15px;
+  line-height: 1.2;
+}
+
+.checklist-grid .skill-check {
+  display: flex;
+  justify-content: center;
   align-items: center;
 }
 
