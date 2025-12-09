@@ -3,6 +3,27 @@ const PIKE13_API_V2 = "https://mcdonaldswimschool.pike13.com/api/v2/desk/";
 const PIKE13_API_V3 = "https://mcdonaldswimschool.pike13.com/desk/api/v3/";
 const EXCLUDED_IDS = [11485475, 11559838, 13602611, 13167161, ""];
 
+// --- SCROLL HANDLING (Auto-Hide Nav) ---
+let lastScrollY = window.scrollY;
+const body = document.body;
+
+window.addEventListener("scroll", () => {
+  const currentScrollY = window.scrollY;
+  
+  // Threshold to prevent jitter
+  if (Math.abs(currentScrollY - lastScrollY) < 10) return;
+
+  if (currentScrollY > lastScrollY && currentScrollY > 50) {
+    // Scrolling Down -> Hide
+    body.classList.add("nav-hidden");
+  } else {
+    // Scrolling Up -> Show
+    body.classList.remove("nav-hidden");
+  }
+  
+  lastScrollY = currentScrollY;
+});
+
 // --- API HELPERS ---
 async function pikeFetch(endpoint, method = "GET", body = null) {
   const headers = {
@@ -32,7 +53,6 @@ function mergeConsecutiveSlots(data) {
   const merged = [];
   for (let i = 0; i < data.length;) {
     const current = data[i];
-    // Keep raw fields including first/last name
     const { id, name, firstName, lastName, shortLevel, isNew, age, fullLevel, start, end, vid, state } = current;
     
     let blockEnd = end;
@@ -65,17 +85,12 @@ function mergeConsecutiveSlots(data) {
 // --- FORMATTING HELPERS ---
 
 function formatName(personObj) {
-  // If a string is passed directly (legacy support)
   if (typeof personObj === 'string') {
     return capitalizeWords(personObj);
   }
-
-  // Prefer distinct fields
   if (personObj.firstName && personObj.lastName) {
     return `${capitalizeWords(personObj.firstName)} ${capitalizeWords(personObj.lastName)}`;
   }
-
-  // Fallback to name string
   return capitalizeWords(personObj.name || "");
 }
 
@@ -90,23 +105,13 @@ function capitalizeWords(str) {
 
 function getShortLevel(fullLevel, ageYears) {
   if (!fullLevel) return "...";
-
-  // 1. Check for "Level \d" pattern first
-  // Matches "Level 1", "Level 5 (Stroke)", etc.
   const levelMatch = fullLevel.match(/^Level\s+(\d+)/i);
   if (levelMatch) {
-    return levelMatch[1]; // Returns just the digit (e.g., "1", "5")
+    return levelMatch[1]; 
   }
+  if (ageYears < 2) return "B"; 
+  else if (ageYears < 4) return "T"; 
 
-  // 2. Keep specific age-based overrides for Baby/Tots
-  // These usually don't have "Level X" in the name
-  if (ageYears < 2) {
-    return "B"; 
-  } else if (ageYears < 4) {
-    return "T"; 
-  } 
-
-  // 3. Fallback to Acronym (Capital letters) for things like "Adult Coaching" -> "AC"
   const capitals = fullLevel.match(/[A-Z]/g);
   return capitals ? capitals.join("") : fullLevel.charAt(0);
 }

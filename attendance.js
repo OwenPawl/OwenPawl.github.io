@@ -3,7 +3,6 @@
   const visitState = new Map();
 
   const handleAttendanceLoading = () => {
-    // Look for grid container instead of table
     const container = document.getElementById("attendanceContainer");
     if (container) {
       container.innerHTML = "<div style='grid-column:1/-1; padding:20px; text-align:center;'><b>Loading...</b></div>";
@@ -28,11 +27,9 @@
   };
 
   const dateInput = document.getElementById("dateInput");
-  // We attach listener to wrapper or document since container might be replaced/created
   const wrapper = document.querySelector(".table-wrapper"); 
   
   if (dateInput) dateInput.addEventListener("change", handleAttendanceLoading);
-  // Delegation on a stable parent
   if (wrapper) wrapper.addEventListener("change", handleInteraction);
   
   window.addEventListener("scheduleUpdated", handleScheduleUpdate);
@@ -48,7 +45,6 @@
 
   // --- RENDER LOGIC ---
   function updateTable(schedule) {
-    // 1. Setup Container (Swap Table for Div if needed)
     let container = document.getElementById("attendanceContainer");
     if (!container) {
       const table = document.getElementById("myTable");
@@ -58,7 +54,6 @@
         container.className = "attendance-grid";
         table.parentNode.replaceChild(container, table);
       } else {
-        // Fallback if neither exists (shouldn't happen in normal flow)
         return;
       }
     }
@@ -78,7 +73,13 @@
     
     const merged = mergeConsecutiveSlots(rawData);
     
-    // 2. Create Header
+    // Group by Start Time to ensure striped background grouping
+    const groups = merged.reduce((acc, r) => {
+      (acc[r.start] ??= []).push(r);
+      return acc;
+    }, {});
+
+    // Create Header
     const headers = ["Name", "Showed", "Notes"];
     headers.forEach((text, index) => {
       const headerDiv = document.createElement("div");
@@ -88,92 +89,94 @@
       container.appendChild(headerDiv);
     });
 
-    // 3. Create Rows
-    merged.forEach((item, index) => {
-      const stripeClass = index % 2 === 0 ? "even" : "odd";
+    // Create Rows (Grouped by Time for coloring)
+    Object.values(groups).forEach((groupRows, groupIndex) => {
+      const stripeClass = groupIndex % 2 === 0 ? "group-even" : "group-odd";
 
-      // --- Name Cell ---
-      const nameDiv = document.createElement("div");
-      nameDiv.className = `att-cell name-cell ${stripeClass}`;
-      
-      const nameTextDiv = document.createElement("div");
-      nameTextDiv.className = "text";
-      
-      const allCompleted = item.states.every(s => s === 'completed');
-      const hasNoshow = item.states.some(s => s === 'noshowed');
-      
-      if (allCompleted) nameTextDiv.style.color = "#00833D"; 
-      else if (hasNoshow) nameTextDiv.style.color = "#850000"; 
-      else nameTextDiv.style.color = "#007BB4"; 
+      groupRows.forEach(item => {
+        // --- Name Cell ---
+        const nameDiv = document.createElement("div");
+        nameDiv.className = `att-cell name-cell ${stripeClass}`;
+        
+        const nameTextDiv = document.createElement("div");
+        nameTextDiv.className = "text";
+        
+        const allCompleted = item.states.every(s => s === 'completed');
+        const hasNoshow = item.states.some(s => s === 'noshowed');
+        
+        if (allCompleted) nameTextDiv.style.color = "#00833D"; 
+        else if (hasNoshow) nameTextDiv.style.color = "#850000"; 
+        else nameTextDiv.style.color = "#007BB4"; 
 
-      if (item.isNew) {
-        const badge = document.createElement("span");
-        badge.className = "badge-new";
-        badge.textContent = "NEW";
-        nameTextDiv.appendChild(badge);
-        nameTextDiv.appendChild(document.createTextNode(" "));
-      }
-      
-      nameTextDiv.appendChild(document.createTextNode(formatName(item)));
-      nameDiv.appendChild(nameTextDiv);
-      container.appendChild(nameDiv);
+        if (item.isNew) {
+          const badge = document.createElement("span");
+          badge.className = "badge-new";
+          badge.textContent = "NEW";
+          nameTextDiv.appendChild(badge);
+          nameTextDiv.appendChild(document.createTextNode(" "));
+        }
+        
+        nameTextDiv.appendChild(document.createTextNode(formatName(item)));
+        nameDiv.appendChild(nameTextDiv);
+        container.appendChild(nameDiv);
 
-      // --- Checkins Cell ---
-      const checkinsDiv = document.createElement("div");
-      checkinsDiv.className = `att-cell checkins-cell ${stripeClass}`;
-      const checkinStack = document.createElement("div");
-      checkinStack.className = "checkin-stack";
+        // --- Checkins Cell ---
+        const checkinsDiv = document.createElement("div");
+        checkinsDiv.className = `att-cell checkins-cell ${stripeClass}`;
+        const checkinStack = document.createElement("div");
+        checkinStack.className = "checkin-stack";
 
-      item.vids.forEach((vid, index) => {
-        const state = item.states[index];
-        const isChecked = (state !== 'late_canceled' && state !== 'noshowed');
-        const eventTime = vidToTime.get(vid.toString());
+        item.vids.forEach((vid, index) => {
+          const state = item.states[index];
+          const isChecked = (state !== 'late_canceled' && state !== 'noshowed');
+          const eventTime = vidToTime.get(vid.toString());
 
-        visitState.set(vid.toString(), {
-          vid: vid.toString(),
-          originalState: state,
-          isChecked: isChecked,
-          eventTime: eventTime
+          visitState.set(vid.toString(), {
+            vid: vid.toString(),
+            originalState: state,
+            isChecked: isChecked,
+            eventTime: eventTime
+          });
+
+          const label = document.createElement("label");
+          label.className = "checkbox-wrapper";
+
+          const input = document.createElement("input");
+          input.type = "checkbox";
+          input.className = "custom-checkbox";
+          input.dataset.role = "checkin";
+          input.id = vid;
+          input.checked = isChecked;
+
+          label.appendChild(input);
+          checkinStack.appendChild(label);
         });
+        checkinsDiv.appendChild(checkinStack);
+        container.appendChild(checkinsDiv);
 
-        const label = document.createElement("label");
-        label.className = "checkbox-wrapper";
+        // --- Notes Cell ---
+        const notesDiv = document.createElement("div");
+        notesDiv.className = `att-cell notes-cell ${stripeClass}`;
+        
+        const notesBtn = document.createElement("button");
+        notesBtn.className = "checkIn notes-btn";
+        notesBtn.dataset.role = "note";
+        notesBtn.ariaLabel = "Edit Notes";
+        notesBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="#ffffff" viewBox="0 0 256 256"><path d="M216,40H176V24a8,8,0,0,0-16,0V40H96V24a8,8,0,0,0-16,0V40H40A16,16,0,0,0,24,56V200a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V56A16,16,0,0,0,216,40Zm0,160H40V56H80V72a8,8,0,0,0,16,0V56h64V72a8,8,0,0,0,16,0V56h40ZM96,120h64a8,8,0,0,1,0,16H96a8,8,0,0,1,0-16Zm64,32H96a8,8,0,0,0,0,16h64a8,8,0,0,0,0-16Z"></path></svg>`;
+        
+        notesBtn.onclick = () => {
+          sessionStorage.setItem("noteContext", JSON.stringify({
+            id: item.id,
+            name: formatName(item),
+            fullLevel: item.fullLevel,
+            age: item.age
+          }));
+          navigate("notes");
+        };
 
-        const input = document.createElement("input");
-        input.type = "checkbox";
-        input.className = "custom-checkbox";
-        input.dataset.role = "checkin";
-        input.id = vid;
-        input.checked = isChecked;
-
-        label.appendChild(input);
-        checkinStack.appendChild(label);
+        notesDiv.appendChild(notesBtn);
+        container.appendChild(notesDiv);
       });
-      checkinsDiv.appendChild(checkinStack);
-      container.appendChild(checkinsDiv);
-
-      // --- Notes Cell ---
-      const notesDiv = document.createElement("div");
-      notesDiv.className = `att-cell notes-cell ${stripeClass}`;
-      
-      const notesBtn = document.createElement("button");
-      notesBtn.className = "checkIn notes-btn";
-      notesBtn.dataset.role = "note";
-      notesBtn.ariaLabel = "Edit Notes";
-      notesBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="#ffffff" viewBox="0 0 256 256"><path d="M216,40H176V24a8,8,0,0,0-16,0V40H96V24a8,8,0,0,0-16,0V40H40A16,16,0,0,0,24,56V200a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V56A16,16,0,0,0,216,40Zm0,160H40V56H80V72a8,8,0,0,0,16,0V56h64V72a8,8,0,0,0,16,0V56h40ZM96,120h64a8,8,0,0,1,0,16H96a8,8,0,0,1,0-16Zm64,32H96a8,8,0,0,0,0,16h64a8,8,0,0,0,0-16Z"></path></svg>`;
-      
-      notesBtn.onclick = () => {
-        sessionStorage.setItem("noteContext", JSON.stringify({
-          id: item.id,
-          name: formatName(item),
-          fullLevel: item.fullLevel,
-          age: item.age
-        }));
-        navigate("notes");
-      };
-
-      notesDiv.appendChild(notesBtn);
-      container.appendChild(notesDiv);
     });
   }
 
