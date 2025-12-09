@@ -147,6 +147,7 @@ body {
   transform: translateY(1px) scale(0.995);
 }
 
+/* --- GENERIC TABLE STYLES (Attendance) --- */
 .data-table {
   width: 100%;
   border-collapse: collapse;
@@ -166,10 +167,9 @@ body {
   line-height: 1.24;
 }
 
-/* --- ROW CONTRAST (Fix) --- */
-/* Target cells directly to ensure visibility on both standard tables and Grid layouts (schedule) */
-.data-table tbody tr:nth-child(even) > td,
-.data-table tbody tr:nth-child(even) > th {
+/* Attendance Table Specifics */
+.attendance-table tbody tr:nth-child(even) > td,
+.attendance-table tbody tr:nth-child(even) > th {
   background-color: rgba(0, 123, 180, 0.03);
 }
 
@@ -189,6 +189,8 @@ body {
   border-radius: 999px;
   letter-spacing: 0.5px;
   text-transform: uppercase;
+  /* Prevent badge itself from shrinking, but allow it to flow */
+  flex-shrink: 0; 
 }
 
 .muted { color: var(--muted); }
@@ -201,27 +203,25 @@ body {
   overflow-x: auto;
 }
 
-.name-text {
-  display: block;
-  width: 100%;
-  max-width: 100%;
-  min-width: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  word-break: normal;
-}
-
+/* --- SCHEDULE GRID SYSTEM --- */
 .schedule-table {
   display: grid;
-  grid-template-columns: max-content max-content minmax(0, 1fr) max-content max-content;
+  /* Reduced widths for Time, Level, Age to maximize Name space */
+  /* 60px | Auto | 35px | 35px */
+  grid-template-columns: 60px minmax(0, 1fr) 35px 35px;
   width: 100%;
 }
 
 .schedule-table thead,
 .schedule-table tbody,
 .schedule-table tr {
-  display: contents;
+  display: contents; 
+}
+
+/* Group Striping: Even groups get background */
+.schedule-table tbody tr:nth-child(even) > td { background-color: transparent; }
+.schedule-table .group-even > td {
+  background-color: rgba(0, 123, 180, 0.03);
 }
 
 .schedule-table th,
@@ -229,16 +229,60 @@ body {
   display: flex;
   flex-direction: column;
   justify-content: center;
+  padding: 6px 4px; /* Reduced side padding slightly */
   overflow: hidden;
+}
+
+.schedule-table th {
+  text-align: left;
+  border-bottom: 2px solid rgba(0, 123, 180, 0.15);
+  padding-bottom: 8px;
+  margin-bottom: 4px;
+  font-weight: 800;
+  color: var(--muted);
+  font-size: 14px;
+  text-transform: uppercase;
+}
+
+/* Default Cell Color (Time, Level, Age) = Ink */
+.schedule-table td {
+  font-weight: 700;
+  color: var(--ink); 
+}
+
+/* NAME ONLY: Blue, with 2-line wrap */
+.name-text {
+  display: -webkit-box;
+  -webkit-line-clamp: 2; /* Limit to 2 lines */
+  line-clamp: 2; /* Standard property */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+  color: var(--blue);
+  white-space: normal; /* Allow wrapping */
+  line-height: 1.2;
+}
+
+/* Time Cell is Ink/Black */
+.schedule-table .time-cell {
+  color: var(--ink);
+}
+
+/* Separator Line */
+.row-separator {
+  box-shadow: inset 0 -1px 0 0 rgba(11, 42, 60, 0.2) !important;
+  z-index: 1; 
 }
 
 .schedule-table :is(th, td):only-child {
   grid-column: 1 / -1;
   align-items: center;
   text-align: center;
-  background-color: transparent; /* Reset for full-width loading/empty cells */
+  background-color: transparent;
 }
 
+/* --- TEXT UTILS --- */
 .text {
   font-weight: 800;
   color: var(--blue);
@@ -248,6 +292,7 @@ body {
   overflow-wrap: normal;
 }
 
+/* --- BUTTONS --- */
 .checkIn {
   width: 94px;
   min-width: 94px;
@@ -269,6 +314,20 @@ body {
 
 .checkIn:active { transform: translateY(1px) scale(0.99); }
 
+.notes-btn { 
+  width: 44px; 
+  min-width: 44px; 
+  height: 44px; 
+  flex: 0 0 auto; 
+  margin-left: 0; 
+  padding: 0; 
+  display: inline-flex; 
+  align-items: center; 
+  justify-content: center;
+  background-color: var(--blue) !important; 
+}
+
+/* --- NAVIGATION --- */
 .bottom-nav {
   position: fixed;
   left: 50%;
@@ -301,21 +360,12 @@ body {
   transition: background 160ms ease, color 160ms ease, transform 120ms ease;
 }
 
-.nav-btn span {
-  display: block;
-}
-
-.nav-btn .icon {
-  font-size: 18px;
-}
-
-.nav-btn.active {
-  background: #eef6fc;
-  color: var(--blue-strong);
-}
-
+.nav-btn span { display: block; }
+.nav-btn .icon { font-size: 18px; }
+.nav-btn.active { background: #eef6fc; color: var(--blue-strong); }
 .nav-btn:active { transform: translateY(1px) scale(0.98); }
 
+/* --- PULL TO REFRESH --- */
 .pull-indicator {
   position: fixed;
   top: 10px;
@@ -339,6 +389,7 @@ body.pull-refresh-ready .pull-indicator {
   opacity: 1;
 }
 
+/* --- FLOATING ACTIONS --- */
 .floating-actions {
   position: fixed;
   left: 50%;
@@ -353,9 +404,7 @@ body.pull-refresh-ready .pull-indicator {
   pointer-events: none;
 }
 
-  .floating-actions > * {
-    pointer-events: auto;
-  }
+.floating-actions > * { pointer-events: auto; }
 
 .floating-actions .cta,
 .floating-actions .ghost {
@@ -368,33 +417,41 @@ body.pull-refresh-ready .pull-indicator {
   justify-content: center;
 }
 
-  .actions-cell {
-    position: sticky;
-    right: 0;
-    background: linear-gradient(90deg, rgba(249, 252, 255, 0.82), #f9fcff 30%);
-    box-shadow: -6px 0 10px rgba(0, 59, 92, 0.04);
-  }
+/* --- ATTENDANCE COLUMNS (Sticky) --- */
+.actions-cell {
+  position: sticky;
+  right: 0;
+  background: linear-gradient(90deg, rgba(249, 252, 255, 0.82), #f9fcff 30%);
+  box-shadow: -6px 0 10px rgba(0, 59, 92, 0.04);
+}
 
-  .action-stack { display: flex; gap: 10px; justify-content: flex-start; align-items: flex-start; }
-  .checkin-stack { display: flex; flex-direction: column; gap: 6px; align-items: flex-end; width: 100%; }
-  
-  .checkins-cell { position: sticky; right: 54px; background: linear-gradient(90deg, rgba(249,252,255,0.9), #f9fcff 50%); box-shadow: -6px 0 10px rgba(0, 59, 92, 0.04); width: 108px; padding-right: 0; text-align: right; }
-  
-  .notes-cell { position: sticky; right: 0; background: linear-gradient(90deg, rgba(249,252,255,0.92), #f9fcff 70%); box-shadow: -6px 0 10px rgba(0, 59, 92, 0.04); width: 54px; padding: 4px 2px 4px 0; text-align: center; }
-  
-  .notes-btn { 
-    width: 44px; 
-    min-width: 44px; 
-    height: 44px; 
-    flex: 0 0 auto; 
-    margin-left: 0; 
-    padding: 0; 
-    display: inline-flex; 
-    align-items: center; 
-    justify-content: center;
-    background-color: var(--blue) !important; /* Force Blue */
-  }
+.action-stack { display: flex; gap: 10px; justify-content: flex-start; align-items: flex-start; }
+.checkin-stack { display: flex; flex-direction: column; gap: 6px; align-items: flex-end; width: 100%; }
 
+.checkins-cell { 
+  position: sticky; 
+  right: 54px; 
+  background: linear-gradient(90deg, rgba(249,252,255,0.9), #f9fcff 50%); 
+  box-shadow: -6px 0 10px rgba(0, 59, 92, 0.04); 
+  width: 108px; 
+  padding-right: 0; 
+  text-align: right; 
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+}
+
+.notes-cell { 
+  position: sticky; 
+  right: 0; 
+  background: linear-gradient(90deg, rgba(249,252,255,0.92), #f9fcff 70%); 
+  box-shadow: -6px 0 10px rgba(0, 59, 92, 0.04); 
+  width: 54px; 
+  padding: 4px 2px 4px 0; 
+  text-align: center; 
+}
+
+/* --- MOBILE QUERIES --- */
 @media (max-width: 520px) {
   body { padding: 10px 6px; }
   .app-shell { gap: 10px; }
@@ -408,7 +465,7 @@ body.pull-refresh-ready .pull-indicator {
   .bottom-nav { width: 100%; border-radius: 16px 16px 0 0; }
 }
 
-/* Checkbox Styles */
+/* --- CHECKBOX STYLES --- */
 .custom-checkbox {
   appearance: none;
   background-color: transparent;
@@ -446,14 +503,11 @@ body.pull-refresh-ready .pull-indicator {
     transform: rotate(-45deg) scale(1);
 }
 
-.checkins-cell {
-  text-align: center;
-  padding-right: 0;
-}
 .checkin-stack {
   align-items: center;
 }
 
+/* --- NOTIFICATIONS --- */
 .notification-container {
   position: fixed;
   top: 20px;
@@ -482,13 +536,9 @@ body.pull-refresh-ready .pull-indicator {
   border-left: 4px solid var(--blue);
 }
 
-.notification-banner.success {
-  border-left-color: var(--green);
-}
-
-.notification-banner.error {
-  border-left-color: #d32f2f;
-}
+.notification-banner.success { border-left-color: var(--green); }
+.notification-banner.error { border-left-color: #d32f2f; }
+.notification-banner.info { border-left-color: var(--blue); }
 
 .notification-message {
   font-weight: 700;
@@ -506,19 +556,10 @@ body.pull-refresh-ready .pull-indicator {
 }
 
 @keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(-20px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes fadeOut {
-  to {
-    opacity: 0;
-    transform: translateY(-20px);
-  }
+  to { opacity: 0; transform: translateY(-20px); }
 }

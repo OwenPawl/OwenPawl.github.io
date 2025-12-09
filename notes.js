@@ -2,12 +2,11 @@
   const noteData = JSON.parse(sessionStorage.getItem("noteContext") || "{}");
   const { id, name, fullLevel, age } = noteData;
 
-  // --- CLEANUP LOGIC ---
-  // Notes view doesn't attach global listeners, but we define cleanupView 
-  // to ensure previous cleanups (from other views) are replaced.
-  window.cleanupView = () => {
-    // No global listeners to remove for notes view currently
-  };
+  // State to track for updates
+  const customFieldInstanceId = "51183690";
+  let originalLevel = fullLevel;
+
+  window.cleanupView = () => {};
 
   function decodeHtml(html) {
     const txt = document.createElement("textarea");
@@ -26,21 +25,16 @@
 
   document.getElementById("noteTitle").textContent = `Notes for ${name}`;
 
-  // --- UNIFIED STORAGE ---
+  // --- UNIFIED STORAGE FOR NEXT STUDENT LOGIC ---
   const scheduleData = normalizeSchedule(null); 
-  
   const uniqueStudents = [];
   const seenIds = new Set();
   
   scheduleData.forEach(row => {
     const sId = row.id;
-    const sName = row.name;
-    const sFullLevel = row.fullLevel;
-    const sAge = row.age;
-    
     if (!EXCLUDED_IDS.includes(sId) && !seenIds.has(sId)) {
       seenIds.add(sId);
-      uniqueStudents.push({ id: sId, name: sName, fullLevel: sFullLevel, age: sAge });
+      uniqueStudents.push({ id: sId, name: row.name, fullLevel: row.fullLevel, age: row.age });
     }
   });
 
@@ -164,34 +158,10 @@
 
   renderChecklist(currentDisplayLevel);
 
+  // Update Checklist immediately on dropdown change, BUT DO NOT SAVE YET
   if (!isLocked) {
-    levelSelect.addEventListener("change", async () => {
-      const newLevel = levelSelect.value;
-      renderChecklist(newLevel);
-
-      try {
-        const response = await fetch(`${PIKE13_API_V2}people/${id}`, {
-             method: "POST",
-             headers: { "Authorization": `Bearer ${localStorage.getItem("access_token")}` },
-             body: (function() {
-                 const fd = new FormData();
-                 fd.append("_method", "patch");
-                 fd.append("person[person_custom_fields_attributes][0][value]", newLevel);
-                 fd.append("person[person_custom_fields_attributes][0][custom_field_id]", "180098");
-                 fd.append("person[person_custom_fields_attributes][0][id]", "51183690");
-                 return fd;
-             })()
-        });
-
-        if (!response.ok) {
-          throw new Error(await response.text());
-        }
-        noteData.fullLevel = newLevel;
-        sessionStorage.setItem("noteContext", JSON.stringify(noteData));
-      } catch (e) {
-        console.error("Error updating level:", e);
-        showNotification(`Failed to update level. ${e.message}`, "error");
-      }
+    levelSelect.addEventListener("change", () => {
+      renderChecklist(levelSelect.value);
     });
   }
 
@@ -199,7 +169,12 @@
     window.location.href = `https://mcdonaldswimschool.pike13.com/people/${id}/notes`;
   });
 
+  // --- SUBMIT HANDLER ---
   document.getElementById("submitNote").addEventListener("click", async () => {
+    const submitBtn = document.getElementById("submitNote");
+    submitBtn.disabled = true;
+    submitBtn.textContent = "Submitting...";
+
     const workedOn = [];
     const nextTime = [];
 
@@ -212,9 +187,12 @@
 
     if (workedOn.length === 0 && nextTime.length === 0) {
       showNotification("Please select at least one skill.", "error");
+      submitBtn.disabled = false;
+      submitBtn.textContent = "Submit";
       return;
     }
 
+    // 1. Build Note Body
     let noteBody = "";
     if (workedOn.length > 0) {
       noteBody += "Skills we worked on:<br><ul>";
@@ -232,35 +210,65 @@
         noteBody += `<br>${customNote}`;
     }
 
-    const submitBtn = document.getElementById("submitNote");
-    submitBtn.disabled = true;
-    submitBtn.textContent = "Submitting...";
-
     try {
-      // Use pikeFetch
-      await pikeFetch(`people/${id}/notes`, "POST", {
+      const promises = [];
+
+      // 2. Queue Note Submission
+      promises.push(pikeFetch(`people/${id}/notes`, "POST", {
           note: {
             note: noteBody,
             public: true,
             send_notifications: true
           }
-      });
+      }));
 
-      showNotification("Note submitted successfully!", "success");
+      // 3. Queue Level Update (if changed and ID found)
+      const newLevel = levelSelect.value;
+      if (!isLocked && customFieldInstanceId && newLevel !== originalLevel) {
+          console.log(`Updating level from ${originalLevel} to ${newLevel}`);
+          
+          // Use raw fetch for FormData because PikeFetch assumes JSON
+          const fd = new FormData();
+          fd.append("_method", "patch"); // Rails shim
+          // The structure for updating existing custom field requires the ID of the field INSTANCE
+          fd.append("person[person_custom_fields_attributes][0][id]", customFieldInstanceId);
+          fd.append("person[person_custom_fields_attributes][0][custom_field_id]", "180098");
+          fd.append("person[person_custom_fields_attributes][0][value]", newLevel);
+
+          const levelUpdate = fetch(`${PIKE13_API_V2}people/${id}`, {
+              method: "POST", // POST with _method=patch for Rails
+              headers: { "Authorization": `Bearer ${localStorage.getItem("access_token")}` },
+              body: fd
+          }).then(async r => {
+             if (!r.ok) throw new Error(await r.text());
+             return r;
+          });
+          
+          promises.push(levelUpdate);
+      }
+
+      await Promise.all(promises);
+
+      showNotification("Submitted successfully!", "success");
       submitBtn.textContent = "Submitted";
-      submitBtn.disabled = true;
+      
+      // Update session context if level changed, so if they come back it's correct
+      if (!isLocked && newLevel !== originalLevel) {
+        noteData.fullLevel = newLevel;
+        sessionStorage.setItem("noteContext", JSON.stringify(noteData));
+      }
       
     } catch (error) {
-      console.error("Error submitting note:", error);
-      showNotification("Failed to submit note. Please try again.", "error");
+      console.error("Error submitting:", error);
+      showNotification("Failed to submit. Please try again.", "error");
       submitBtn.disabled = false;
       submitBtn.textContent = "Submit";
     }
   });
 
+  // --- PRE-FILL CHECKBOXES FROM PREVIOUS NOTES ---
   (async () => {
       try {
-        // Use pikeFetch
         const data = await pikeFetch(`people/${id}/notes`);
         if (!data) return;
         
