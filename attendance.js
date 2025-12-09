@@ -3,12 +3,10 @@
   const visitState = new Map();
 
   const handleAttendanceLoading = () => {
-    const table = document.getElementById("myTable");
-    if (table) {
-      table.innerHTML = "";
-      const row = table.insertRow();
-      const cell = row.insertCell();
-      cell.innerHTML = "<b>Loading...</b>";
+    // Look for grid container instead of table
+    const container = document.getElementById("attendanceContainer");
+    if (container) {
+      container.innerHTML = "<div style='grid-column:1/-1; padding:20px; text-align:center;'><b>Loading...</b></div>";
     }
   };
 
@@ -30,17 +28,19 @@
   };
 
   const dateInput = document.getElementById("dateInput");
-  const table = document.getElementById("myTable");
-
+  // We attach listener to wrapper or document since container might be replaced/created
+  const wrapper = document.querySelector(".table-wrapper"); 
+  
   if (dateInput) dateInput.addEventListener("change", handleAttendanceLoading);
-  if (table) table.addEventListener("change", handleInteraction);
+  // Delegation on a stable parent
+  if (wrapper) wrapper.addEventListener("change", handleInteraction);
   
   window.addEventListener("scheduleUpdated", handleScheduleUpdate);
   window.addEventListener("scheduleLoading", handleAttendanceLoading);
 
   window.cleanupView = () => {
     if (dateInput) dateInput.removeEventListener("change", handleAttendanceLoading);
-    if (table) table.removeEventListener("change", handleInteraction);
+    if (wrapper) wrapper.removeEventListener("change", handleInteraction);
     window.removeEventListener("scheduleUpdated", handleScheduleUpdate);
     window.removeEventListener("scheduleLoading", handleAttendanceLoading);
     visitState.clear();
@@ -48,17 +48,28 @@
 
   // --- RENDER LOGIC ---
   function updateTable(schedule) {
-    const table = document.getElementById("myTable");
-    table.innerHTML = "";
+    // 1. Setup Container (Swap Table for Div if needed)
+    let container = document.getElementById("attendanceContainer");
+    if (!container) {
+      const table = document.getElementById("myTable");
+      if (table) {
+        container = document.createElement("div");
+        container.id = "attendanceContainer";
+        container.className = "attendance-grid";
+        table.parentNode.replaceChild(container, table);
+      } else {
+        // Fallback if neither exists (shouldn't happen in normal flow)
+        return;
+      }
+    }
+    
+    container.innerHTML = "";
     visitState.clear();
 
     const rawData = normalizeSchedule(schedule).filter(item => (!EXCLUDED_IDS.includes(item.id)));
     
     if (!rawData.length) {
-      const row = table.insertRow();
-      const cell = row.insertCell();
-      cell.textContent = "No Events";
-      cell.style.fontWeight = "bold";
+      container.innerHTML = "<div style='grid-column:1/-1; padding:20px; text-align:center; font-weight:bold;'>No Events</div>";
       return;
     }
 
@@ -67,52 +78,49 @@
     
     const merged = mergeConsecutiveSlots(rawData);
     
-    const thead = document.createElement("thead");
-    const headerRow = document.createElement("tr");
-    ["Name", "Showed", "Notes"].forEach((text, index) => {
-      const th = document.createElement("th");
-      th.textContent = text;
-      // Fixed width styles are in CSS, but this ensures generic alignment
-      if (index > 0) th.style.textAlign = "center";
-      headerRow.appendChild(th);
+    // 2. Create Header
+    const headers = ["Name", "Showed", "Notes"];
+    headers.forEach((text, index) => {
+      const headerDiv = document.createElement("div");
+      headerDiv.className = "att-header-cell";
+      if (index > 0) headerDiv.classList.add("center");
+      headerDiv.textContent = text;
+      container.appendChild(headerDiv);
     });
-    thead.appendChild(headerRow);
-    table.appendChild(thead);
 
-    const tbody = document.createElement("tbody");
-    
-    merged.forEach(item => {
-      const tr = document.createElement("tr");
+    // 3. Create Rows
+    merged.forEach((item, index) => {
+      const stripeClass = index % 2 === 0 ? "even" : "odd";
 
       // --- Name Cell ---
-      const nameTd = document.createElement("td");
       const nameDiv = document.createElement("div");
-      nameDiv.className = "text";
+      nameDiv.className = `att-cell name-cell ${stripeClass}`;
+      
+      const nameTextDiv = document.createElement("div");
+      nameTextDiv.className = "text";
       
       const allCompleted = item.states.every(s => s === 'completed');
       const hasNoshow = item.states.some(s => s === 'noshowed');
       
-      if (allCompleted) nameDiv.style.color = "#00833D"; 
-      else if (hasNoshow) nameDiv.style.color = "#850000"; 
-      else nameDiv.style.color = "#007BB4"; 
+      if (allCompleted) nameTextDiv.style.color = "#00833D"; 
+      else if (hasNoshow) nameTextDiv.style.color = "#850000"; 
+      else nameTextDiv.style.color = "#007BB4"; 
 
       if (item.isNew) {
         const badge = document.createElement("span");
         badge.className = "badge-new";
         badge.textContent = "NEW";
-        // FIX: Append badge element, don't overwrite textContent later
-        nameDiv.appendChild(badge);
-        nameDiv.appendChild(document.createTextNode(" "));
+        nameTextDiv.appendChild(badge);
+        nameTextDiv.appendChild(document.createTextNode(" "));
       }
       
-      // FIX: Append text node instead of += to preserve badge
-      nameDiv.appendChild(document.createTextNode(formatName(item)));
-      nameTd.appendChild(nameDiv);
-      tr.appendChild(nameTd);
+      nameTextDiv.appendChild(document.createTextNode(formatName(item)));
+      nameDiv.appendChild(nameTextDiv);
+      container.appendChild(nameDiv);
 
       // --- Checkins Cell ---
-      const checkinsTd = document.createElement("td");
-      checkinsTd.className = "actions-cell checkins-cell";
+      const checkinsDiv = document.createElement("div");
+      checkinsDiv.className = `att-cell checkins-cell ${stripeClass}`;
       const checkinStack = document.createElement("div");
       checkinStack.className = "checkin-stack";
 
@@ -141,12 +149,12 @@
         label.appendChild(input);
         checkinStack.appendChild(label);
       });
-      checkinsTd.appendChild(checkinStack);
-      tr.appendChild(checkinsTd);
+      checkinsDiv.appendChild(checkinStack);
+      container.appendChild(checkinsDiv);
 
       // --- Notes Cell ---
-      const notesTd = document.createElement("td");
-      notesTd.className = "actions-cell notes-cell";
+      const notesDiv = document.createElement("div");
+      notesDiv.className = `att-cell notes-cell ${stripeClass}`;
       
       const notesBtn = document.createElement("button");
       notesBtn.className = "checkIn notes-btn";
@@ -164,12 +172,9 @@
         navigate("notes");
       };
 
-      notesTd.appendChild(notesBtn);
-      tr.appendChild(notesTd);
-      tbody.appendChild(tr);
+      notesDiv.appendChild(notesBtn);
+      container.appendChild(notesDiv);
     });
-
-    table.appendChild(tbody);
   }
 
   updateTable(sessionStorage.getItem("schedule"));
@@ -181,19 +186,16 @@
       const dateVal = document.getElementById("dateInput").value;
       const now = new Date();
 
-      // 1. Check for empty schedule
       if (visitState.size === 0) {
         updateNotification("No events to submit.", "info", 3000);
         return;
       }
 
-      // 2. Validate Time (Last event must be in the past)
-      let latestEventTime = new Date(0); // Epoch
+      let latestEventTime = new Date(0);
       let latestEventStr = "";
 
       for (const record of visitState.values()) {
         if (record.eventTime) {
-          // Parse "9:00 AM" + dateVal into a Date object
           const timeStr = `${dateVal} ${record.eventTime}`;
           const evtDate = new Date(timeStr);
           if (!isNaN(evtDate) && evtDate > latestEventTime) {
@@ -203,13 +205,11 @@
         }
       }
 
-      // If the latest event hasn't started yet, block submission
       if (latestEventTime > now) {
         updateNotification(`Cannot submit future attendance (Last event: ${latestEventStr})`, "error", 4000);
         return;
       }
 
-      // 3. Calculate Updates
       const updates = [];
       for (const record of visitState.values()) {
         const { vid, originalState, isChecked, eventTime } = record;
@@ -237,14 +237,12 @@
         }
       }
 
-      // 4. Check for changes
       if (updates.length === 0) {
         updateNotification("No changes to submit.", "info", 3000);
         return;
       }
 
-      // 5. Submit Process
-      updateNotification("Submitting Attendance...", "info", 0); // 0 = Persistent
+      updateNotification("Submitting Attendance...", "info", 0);
 
       const headers = {
         "Authorization": `Bearer ${localStorage.getItem("access_token")}`,
@@ -302,17 +300,14 @@
 
   function updateNotification(message, type = "info", duration = 3000) {
     let container = document.querySelector(".notification-container");
-    // Ensure container exists
     if (!container) {
       container = document.createElement("div");
       container.className = "notification-container";
       document.body.appendChild(container);
     }
 
-    // Try to find existing banner
     let notification = container.querySelector(".notification-banner");
     
-    // If not found, create it using global helper or manually if needed
     if (!notification) {
       notification = document.createElement("div");
       notification.className = `notification-banner ${type}`;
@@ -332,14 +327,11 @@
       notification.appendChild(closeBtn);
       container.appendChild(notification);
     } else {
-      // Update existing
       notification.className = `notification-banner ${type}`;
     }
 
-    // Update Text
     notification.querySelector(".notification-message").textContent = message;
 
-    // Handle Timeout
     if (notificationTimeout) clearTimeout(notificationTimeout);
     
     if (duration > 0) {

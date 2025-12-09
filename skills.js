@@ -91,7 +91,7 @@ const SKILLS = {
     "Feet and headfirst"
   ],
 
-  "Level 6 (Fine Tuning and Endurance)": [
+  "Level 6 (Fine Tuning & Endurance)": [
     "Freestyle: Body roll",
     "Freestyle: Consistent kick",
     "Freestyle: Consistent side breathing (both sides)",

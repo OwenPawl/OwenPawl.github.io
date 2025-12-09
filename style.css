@@ -5,7 +5,6 @@
   --blue: #007bb4;
   --blue-strong: #006694;
   --green: #00833d;
-  /* Removed --teal */
   --surface: #f7fbff;
   --ink: #0b2a3c;
   --muted: #6b7a86;
@@ -148,7 +147,7 @@ body {
   transform: translateY(1px) scale(0.995);
 }
 
-/* --- GENERIC TABLE STYLES (Attendance) --- */
+/* --- GENERIC TABLE STYLES --- */
 .data-table {
   width: 100%;
   border-collapse: collapse;
@@ -157,34 +156,6 @@ body {
   overflow: hidden;
   box-shadow: inset 0 0 0 1px rgba(0, 123, 180, 0.05);
 }
-
-.data-table th,
-.data-table td {
-  padding: 12px 10px;
-  text-align: left;
-  font-size: 15px;
-  border-bottom: 1px solid rgba(0, 123, 180, 0.08);
-  vertical-align: middle;
-  line-height: 1.24;
-}
-
-/* Header Styling (Applied to both but overridden by grid in schedule) */
-.data-table th {
-  color: var(--muted);
-  text-transform: uppercase;
-  font-size: 13px;
-  font-weight: 800;
-  letter-spacing: 0.5px;
-}
-
-/* Attendance Table Specifics */
-.attendance-table tbody tr:nth-child(even) > td,
-.attendance-table tbody tr:nth-child(even) > th {
-  background-color: rgba(0, 123, 180, 0.03);
-}
-
-.data-table tr:last-child th,
-.data-table tr:last-child td { border-bottom: none; }
 
 .badge-new {
   display: inline-flex;
@@ -200,7 +171,8 @@ body {
   letter-spacing: 0.5px;
   text-transform: uppercase;
   flex-shrink: 0; 
-  margin-right: 4px;
+  margin-right: 6px; /* Increased margin */
+  vertical-align: middle; /* Ensure alignment with text */
 }
 
 .muted { color: var(--muted); }
@@ -213,31 +185,59 @@ body {
   overflow-x: auto;
 }
 
-/* --- SCHEDULE GRID SYSTEM (DIV BASED) --- */
+/* --- ATTENDANCE GRID SYSTEM --- */
+.attendance-grid {
+  display: grid;
+  grid-template-columns: 1fr 108px 54px;
+  width: 100%;
+  background: #f9fcff;
+  border-radius: 12px;
+}
+
+.att-header-cell {
+  padding: 12px 10px;
+  border-bottom: 2px solid rgba(0, 123, 180, 0.15);
+  color: var(--muted);
+  text-transform: uppercase;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  text-align: left;
+}
+
+.att-header-cell.center { text-align: center; }
+
+.att-cell {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 12px 10px;
+  overflow: hidden;
+  border-bottom: 1px solid rgba(0, 123, 180, 0.08);
+  font-weight: 700;
+  color: var(--blue);
+}
+
+.att-cell.even { background-color: rgba(0, 123, 180, 0.03); }
+
+.att-cell.checkins-cell { padding-right: 0; align-items: center; }
+.att-cell.notes-cell { padding: 4px 2px 4px 0; align-items: center; }
+
+/* --- SCHEDULE GRID SYSTEM --- */
 .schedule-grid {
   display: grid;
-  /* Time: 60px fixed
-     Name: 1fr (takes all remaining space)
-     Lvl: auto (fits content, min 30px)
-     Age: auto (fits content, min 30px)
-  */
   grid-template-columns: 60px 1fr auto auto;
   width: 100%;
   background: #f9fcff; 
   border-radius: 12px; 
 }
 
-/* Group Striping: Even groups get background */
-.schedule-cell.group-even {
-  background-color: rgba(0, 123, 180, 0.03);
-}
+.schedule-cell.group-even { background-color: rgba(0, 123, 180, 0.03); }
 
-.schedule-header {
-  display: contents;
-}
+.schedule-header { display: contents; }
 
 .header-cell {
-  padding: 8px 6px; /* slightly more side padding */
+  padding: 8px 6px; 
   margin-bottom: 4px;
   border-bottom: 2px solid rgba(0, 123, 180, 0.15);
   color: var(--muted);
@@ -253,33 +253,41 @@ body {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: 6px 6px; /* Dynamic width needs padding */
+  padding: 6px 6px; 
   overflow: hidden;
   font-weight: 700;
-  color: var(--ink); /* Default Ink */
-  min-width: 0; /* Critical for grid text overflow */
+  color: var(--ink); 
+  min-width: 0; 
 }
 
 .name-text {
+  /* Allow 2 lines */
   display: -webkit-box;
   -webkit-line-clamp: 2;
   line-clamp: 2;
   -webkit-box-orient: vertical;
+  
+  /* Critical for badge flow */
+  display: block; /* Fallback/Base */
+  display: -webkit-box; /* Re-apply flex-like box */
+  
   overflow: hidden;
   text-overflow: ellipsis;
   width: 100%;
   color: var(--blue);
   white-space: normal;
-  line-height: 1.2;
+  line-height: 1.3; /* Increased slightly for badge clearance */
   hyphens: auto; 
   word-wrap: break-word;
 }
 
-.time-cell { 
-  color: var(--ink); 
-  text-align: center;
-  align-items: center;
+/* Ensure badge stays inline */
+.name-text .badge-new {
+  float: left; /* Helps text wrap around it naturally in block context if needed */
+  margin-top: 1px;
 }
+
+.time-cell { color: var(--ink); text-align: center; align-items: center; }
 
 .row-separator {
   box-shadow: inset 0 -1px 0 0 rgba(11, 42, 60, 0.2) !important;
@@ -421,62 +429,9 @@ body.pull-refresh-ready .pull-indicator {
   justify-content: center;
 }
 
-/* --- ATTENDANCE COLUMNS (Sticky & Sizing) --- */
-/* Ensure the table layout respects expanding name column */
-.attendance-table {
-  table-layout: fixed; /* Allow specific widths */
-}
-
-/* Name Column: Expands */
-.attendance-table td:first-child,
-.attendance-table th:first-child {
-  width: auto; /* Takes remaining space */
-}
-
-/* Showed Column: Fixed */
-.checkins-cell, 
-.attendance-table th:nth-child(2) { 
-  width: 108px; 
-  width: 108px; 
-  padding-right: 0; 
-  text-align: right; 
-}
-
-/* Notes Column: Fixed */
-.notes-cell,
-.attendance-table th:nth-child(3) {
-  width: 54px;
-  min-width: 54px;
-  text-align: center;
-}
-
-.actions-cell {
-  position: sticky;
-  right: 0;
-  background: linear-gradient(90deg, rgba(249, 252, 255, 0.82), #f9fcff 30%);
-  box-shadow: -6px 0 10px rgba(0, 59, 92, 0.04);
-}
-
+/* --- ATTENDANCE COLUMNS --- */
 .action-stack { display: flex; gap: 10px; justify-content: flex-start; align-items: flex-start; }
 .checkin-stack { display: flex; flex-direction: column; gap: 6px; align-items: flex-end; width: 100%; align-items: center; }
-
-.checkins-cell { 
-  position: sticky; 
-  right: 54px; 
-  background: linear-gradient(90deg, rgba(249,252,255,0.9), #f9fcff 50%); 
-  box-shadow: -6px 0 10px rgba(0, 59, 92, 0.04); 
-  display: flex; /* Flex required for sticky + vertical align in some browsers */
-  justify-content: center;
-  flex-direction: column;
-}
-
-.notes-cell { 
-  position: sticky; 
-  right: 0; 
-  background: linear-gradient(90deg, rgba(249,252,255,0.92), #f9fcff 70%); 
-  box-shadow: -6px 0 10px rgba(0, 59, 92, 0.04); 
-  padding: 4px 2px 4px 0; 
-}
 
 /* --- MOBILE QUERIES --- */
 @media (max-width: 520px) {
@@ -487,7 +442,6 @@ body.pull-refresh-ready .pull-indicator {
   .data-table th, .data-table td { padding: 10px 6px; font-size: 14px; }
   .checkIn { margin: 3px 0; }
   .checkin-stack { gap: 6px; }
-  .checkins-cell { right: 54px; }
   .floating-actions { width: calc(100% - 10px); bottom: calc(var(--nav-height) + 8px); gap: 8px; }
   .bottom-nav { width: 100%; border-radius: 16px 16px 0 0; }
 }
@@ -497,9 +451,9 @@ body.pull-refresh-ready .pull-indicator {
   appearance: none;
   background-color: transparent;
   margin: 4px 2px;
-  width: 44px !important; /* Force width */
-  height: 44px !important; /* Force height */
-  flex: 0 0 44px; /* Prevent flex shrinking */
+  width: 44px !important;
+  height: 44px !important;
+  flex: 0 0 44px;
   border: 2px solid var(--muted);
   border-radius: 8px;
   display: grid;
@@ -522,7 +476,6 @@ body.pull-refresh-ready .pull-indicator {
     left: 10px;
 }
 
-/* Default Checked (Green) - used in Attendance */
 .custom-checkbox:checked {
     background-color: var(--green);
     border-color: var(--green);
@@ -531,43 +484,61 @@ body.pull-refresh-ready .pull-indicator {
     transform: rotate(-45deg) scale(1);
 }
 
-/* Note Specific: Next Time (Blue) */
 .custom-checkbox.next-time:checked {
     background-color: var(--blue);
     border-color: var(--blue);
 }
 
-/* --- NOTES CHECKLIST GRID --- */
-.checklist-grid {
-  display: grid;
-  /* 1fr | 60px | 60px - Giving more space for 44px boxes + padding */
-  grid-template-columns: 1fr 60px 60px;
-  gap: 8px 8px; /* Increased gap */
-  align-items: center;
+/* --- NOTES CHECKLIST GRID (UPDATED FOR STRIPING) --- */
+.checklist-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
   margin-top: 12px;
+  background: #f9fcff;
+  border-radius: 12px;
+  overflow: hidden; /* For border radius */
 }
 
-.checklist-grid .col-header {
+/* Header Row */
+.checklist-header-row {
+  display: grid;
+  grid-template-columns: 1fr 60px 60px;
+  gap: 8px;
+  padding: 8px 12px;
+  border-bottom: 2px solid rgba(0, 123, 180, 0.15);
+}
+
+.col-header {
   font-size: 13px;
   font-weight: 800;
   text-transform: uppercase;
   color: var(--muted);
-  padding-bottom: 6px;
-  border-bottom: 1px solid rgba(0, 123, 180, 0.1);
+}
+.col-header.center { text-align: center; }
+
+/* Item Row */
+.checklist-row {
+  display: grid;
+  grid-template-columns: 1fr 60px 60px;
+  gap: 8px;
+  padding: 8px 12px;
+  align-items: center;
 }
 
-.checklist-grid .col-header.center {
-  text-align: center;
+/* Alternating Striping for Rows */
+.checklist-row:nth-child(even) {
+  background-color: rgba(0, 123, 180, 0.03);
 }
 
-.checklist-grid .skill-label {
+.skill-label {
   font-weight: 700;
-  color: var(--ink); /* Changed to Ink */
+  color: var(--ink);
   font-size: 15px;
   line-height: 1.2;
 }
 
-.checklist-grid .skill-check {
+.skill-check {
   display: flex;
   justify-content: center;
   align-items: center;

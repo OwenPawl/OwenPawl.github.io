@@ -2,7 +2,6 @@
   const noteData = JSON.parse(sessionStorage.getItem("noteContext") || "{}");
   const { id, name, fullLevel, age } = noteData;
 
-  // State to track for updates
   const customFieldInstanceId = "51183690";
   let originalLevel = fullLevel;
 
@@ -128,23 +127,30 @@
     if (!skills || skills.length === 0) {
       container.innerHTML = "<p>No skills found for this level.</p>";
     } else {
-      // --- REFACTORED TO GRID ---
-      let html = `
-        <div class="checklist-grid">
+      // Wrapper for Striping logic
+      let html = `<div class="checklist-container">`;
+      
+      // Header Row
+      html += `
+        <div class="checklist-header-row">
           <div class="col-header">Skill</div>
           <div class="col-header center">Worked</div>
           <div class="col-header center">Next</div>
+        </div>
       `;
 
+      // Item Rows
       skills.forEach((skill) => {
         const safeSkill = skill.replace(/"/g, '&quot;');
         html += `
-          <div class="skill-label">${skill}</div>
-          <div class="skill-check">
-            <input type="checkbox" data-skill="${safeSkill}" class="custom-checkbox worked-on">
-          </div>
-          <div class="skill-check">
-            <input type="checkbox" data-skill="${safeSkill}" class="custom-checkbox next-time">
+          <div class="checklist-row">
+            <div class="skill-label">${skill}</div>
+            <div class="skill-check">
+              <input type="checkbox" data-skill="${safeSkill}" class="custom-checkbox worked-on">
+            </div>
+            <div class="skill-check">
+              <input type="checkbox" data-skill="${safeSkill}" class="custom-checkbox next-time">
+            </div>
           </div>
         `;
       });
@@ -189,7 +195,6 @@
       return;
     }
 
-    // 1. Build Note Body
     let noteBody = "";
     if (workedOn.length > 0) {
       noteBody += "Skills we worked on:<br><ul>";
@@ -210,7 +215,6 @@
     try {
       const promises = [];
 
-      // 2. Queue Note Submission
       promises.push(pikeFetch(`people/${id}/notes`, "POST", {
           note: {
             note: noteBody,
@@ -219,7 +223,6 @@
           }
       }));
 
-      // 3. Queue Level Update (if changed and ID found)
       const newLevel = levelSelect.value;
       if (!isLocked && customFieldInstanceId && newLevel !== originalLevel) {
           console.log(`Updating level from ${originalLevel} to ${newLevel}`);
