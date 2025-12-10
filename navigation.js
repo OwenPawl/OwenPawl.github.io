@@ -66,6 +66,13 @@ async function load(file, scriptFile, targetElement = document.getElementById("a
   targetElement.innerHTML = html;
 
   if (targetElement.id === "app") {
+    // 1. Auto-detect floating actions for padding logic
+    if (targetElement.querySelector('.floating-actions')) {
+        document.body.classList.add('has-fab');
+    } else {
+        document.body.classList.remove('has-fab');
+    }
+
     // Scroll to top when navigation finishes
     window.scrollTo(0, 0);
     
@@ -78,7 +85,7 @@ async function load(file, scriptFile, targetElement = document.getElementById("a
 
     const route = routes[routeKey];
     if (route && route.renderFn && window[route.renderFn]) {
-        window[route.renderFn](document);
+        window[route.renderFn](document.getElementById("app"));
     } else if (routeKey === 'notes') {
         const oldScript = document.querySelector(`script[src="${scriptFile}"]`);
         if (oldScript) oldScript.remove();
@@ -90,13 +97,12 @@ async function load(file, scriptFile, targetElement = document.getElementById("a
   }
 }
 
-// Updated Navigate: Uses State instead of Hash
-function navigate(target) {
+// Expose navigate globally so inline scripts can find it
+window.navigate = function(target) {
   updateAppState({ view: target });
   router();
-}
+};
 
-// Updated Router: Reads from State
 function router() {
   const state = getAppState();
   let currentView = state.view;
@@ -319,7 +325,7 @@ class SwipeHandler {
       }
 
       setTimeout(() => {
-        navigate(targetRoute);
+        window.navigate(targetRoute);
         this.reset();
       }, 200);
     } else {
@@ -353,12 +359,10 @@ class SwipeHandler {
 document.addEventListener("DOMContentLoaded", () => {
   document.querySelectorAll(".nav-btn").forEach(btn => {
     btn.addEventListener("click", (e) => {
-      navigate(btn.dataset.target);
+      window.navigate(btn.dataset.target);
     });
   });
 
-  // Initial load
   router();
-
   new SwipeHandler();
 });

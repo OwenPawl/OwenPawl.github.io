@@ -1,19 +1,26 @@
 {
   const visitState = new Map();
 
-  // SCOPED SELECTOR
   const getEl = (id, container) => {
     if (!container) container = document.getElementById("app");
     return container.querySelector(`#${id}`);
   };
 
+  // PASSIVE LOADER: Background refresh (keep cached content)
   const handleAttendanceLoading = () => {
     const container = document.getElementById("attendanceContainer");
     if (container) {
-      // If empty, show loading text. If content exists (cached), do nothing (keep visible).
       if (container.children.length === 0) {
         container.innerHTML = "<div style='grid-column:1/-1; padding:20px; text-align:center;'><b>Loading...</b></div>";
       }
+    }
+  };
+
+  // ACTIVE LOADER: Date change (wipe and show loading)
+  const handleDateChange = () => {
+    const container = document.getElementById("attendanceContainer");
+    if (container) {
+      container.innerHTML = "<div style='grid-column:1/-1; padding:20px; text-align:center;'><b>Loading...</b></div>";
     }
   };
 
@@ -40,8 +47,8 @@
         const wrapper = document.querySelector(".table-wrapper"); 
         
         if (dateInput) {
-            dateInput.removeEventListener("change", handleAttendanceLoading);
-            dateInput.addEventListener("change", handleAttendanceLoading);
+            dateInput.removeEventListener("change", handleDateChange);
+            dateInput.addEventListener("change", handleDateChange);
         }
         if (wrapper) {
             wrapper.removeEventListener("change", handleInteraction);
@@ -59,7 +66,7 @@
 
   window.cleanupView = () => {
     const dateInput = document.getElementById("dateInput");
-    if (dateInput) dateInput.removeEventListener("change", handleAttendanceLoading);
+    if (dateInput) dateInput.removeEventListener("change", handleDateChange);
     const wrapper = document.querySelector(".table-wrapper");
     if (wrapper) wrapper.removeEventListener("change", handleInteraction);
     
@@ -68,7 +75,6 @@
     window.attendanceListenersAttached = false;
   };
 
-  // --- EXPORTED RENDER FUNCTION ---
   window.renderAttendance = (container, scheduleData = null) => {
     if (!container) container = document.getElementById("app");
 
@@ -203,7 +209,7 @@
                 fullLevel: item.fullLevel,
                 age: item.age
               }));
-              navigate("notes");
+              window.navigate("notes");
             };
         }
         notesDiv.appendChild(notesBtn);

@@ -4,21 +4,27 @@
     return container.querySelector(`#${id}`);
   };
 
+  // PASSIVE LOADER: For refresh / background fetch
   const handleTableLoading = () => {
     const container = document.getElementById("scheduleContainer");
     if (container) {
-      // If container is empty, show loading text. 
-      // If it has content (cached data), leave it fully visible as placeholder.
+      // If content exists, leave it as placeholder. Only show text if truly empty.
       if (container.children.length === 0) {
         container.innerHTML = "<div style='padding:20px; text-align:center;'><b>Loading...</b></div>";
+        const locHeader = document.getElementById("locationHeader");
+        if (locHeader) locHeader.innerHTML = "";
       }
     }
-    
-    const locHeader = document.getElementById("locationHeader");
-    // Only clear header if we are showing the loading text
-    if (locHeader && container && container.children.length === 0) {
-        locHeader.innerHTML = "";
+  };
+
+  // ACTIVE LOADER: For date changes (User requested change)
+  const handleDateChange = () => {
+    const container = document.getElementById("scheduleContainer");
+    if (container) {
+      container.innerHTML = "<div style='padding:20px; text-align:center;'><b>Loading...</b></div>";
     }
+    const locHeader = document.getElementById("locationHeader");
+    if (locHeader) locHeader.innerHTML = "";
   };
 
   const handleTableUpdate = (e) => {
@@ -30,8 +36,8 @@
         const dateInput = document.getElementById("dateInput");
         
         if (dateInput) {
-            dateInput.removeEventListener("change", handleTableLoading); 
-            dateInput.addEventListener("change", handleTableLoading);
+            dateInput.removeEventListener("change", handleDateChange); 
+            dateInput.addEventListener("change", handleDateChange);
         }
         
         window.removeEventListener("scheduleUpdated", handleTableUpdate);
@@ -46,7 +52,7 @@
 
   window.cleanupView = () => {
     const dateInput = document.getElementById("dateInput");
-    if (dateInput) dateInput.removeEventListener("change", handleTableLoading);
+    if (dateInput) dateInput.removeEventListener("change", handleDateChange);
     window.removeEventListener("scheduleUpdated", handleTableUpdate);
     window.removeEventListener("scheduleLoading", handleTableLoading);
     window.scheduleListenersAttached = false;
@@ -73,7 +79,6 @@
       }
     }
     
-    // Just clear HTML, no opacity manipulation needed
     contentContainer.innerHTML = "";
 
     const dataRaw = scheduleData || sessionStorage.getItem("schedule");

@@ -13,18 +13,20 @@
   --radius-lg: 18px;
   --nav-height: 74px;
   --safe-area-bottom: env(safe-area-inset-bottom, 0px);
-  --content-bottom-pad: calc(var(--nav-height) + var(--safe-area-bottom) + 70px);
+  
+  /* DEFAULT: Small padding (For Schedule View / No Buttons) 
+     Nav (74) + Safe Area + 12px Buffer */
+  --content-bottom-pad: calc(var(--nav-height) + var(--safe-area-bottom) + 12px);
+  
   --nav-translate-y: 0px;
 }
 
 * { box-sizing: border-box; }
 
 html, body {
-  /* CRITICAL FIX: Disables native bounce/rubber-banding in BOTH directions.
-     This stops the page from "popping back up" when scrolling past the bottom. */
+  /* CRITICAL FIX: Disables bounce/rubber-banding in ALL directions (X and Y) */
   overscroll-behavior: none;
-  
-  /* Disable horizontal gestures at browser level (zooming, back/forward), allow vertical scrolling */
+  /* Disable horizontal gestures, allow vertical pan */
   touch-action: pan-y;
 }
 
@@ -39,9 +41,15 @@ body {
   display: flex;
   justify-content: center;
   padding: 10px;
-  /* Moved padding to .app-shell to fix bounce-back logic */
   padding-bottom: 0; 
+  overscroll-behavior-y: contain;
   overflow-x: hidden;
+}
+
+/* OVERRIDE: Large padding (For Attendance/Notes / Has Buttons) 
+   Nav (74) + Safe Area + Button Height (50) + Gaps (20) = +70px */
+body.has-fab .app-shell {
+  --content-bottom-pad: calc(var(--nav-height) + var(--safe-area-bottom) + 70px);
 }
 
 /* --- SWIPE OVERLAYS --- */
@@ -102,15 +110,7 @@ body.swiping-active .view-prev {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  /* Apply the bottom padding HERE instead of body to allow proper flow */
   padding-bottom: var(--content-bottom-pad);
-}
-
-/* Fix spacing for Schedule View (no floating actions) 
-   Reduced buffer from 20px to 10px to match the visual spacing of the button views.
-*/
-body:not(:has(.floating-actions)) .app-shell {
-  --content-bottom-pad: calc(var(--nav-height) + var(--safe-area-bottom) + 10px);
 }
 
 .top-bar {
@@ -685,7 +685,7 @@ body.pull-refresh-ready .pull-indicator {
   background: var(--card);
   padding: 12px 16px;
   border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); 
   display: flex;
   align-items: center;
   justify-content: space-between;
