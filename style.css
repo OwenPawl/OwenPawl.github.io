@@ -13,28 +13,29 @@
   --radius-lg: 18px;
   --nav-height: 74px;
   --safe-area-bottom: env(safe-area-inset-bottom, 0px);
-  
-  /* DEFAULT: Small padding (For Schedule View / No Buttons) 
-     Nav (74) + Safe Area + 12px Buffer */
   --content-bottom-pad: calc(var(--nav-height) + var(--safe-area-bottom) + 12px);
-  
   --nav-translate-y: 0px;
 }
 
 * { box-sizing: border-box; }
 
+html {
+  /* MOVED BACKGROUND HERE: Fixes "black bar" on Safari/Mobile */
+  background: radial-gradient(circle at 10% 10%, rgba(0, 123, 180, 0.08), transparent 35%),
+              radial-gradient(circle at 90% 0%, rgba(0, 131, 61, 0.08), transparent 35%),
+              #e9f5ff;
+  min-height: 100%;
+}
+
 html, body {
-  /* CRITICAL FIX: Disables bounce/rubber-banding in ALL directions (X and Y) */
   overscroll-behavior: none;
-  /* Disable horizontal gestures, allow vertical pan */
   touch-action: pan-y;
 }
 
 body {
   margin: 0;
-  background: radial-gradient(circle at 10% 10%, rgba(0, 123, 180, 0.08), transparent 35%),
-              radial-gradient(circle at 90% 0%, rgba(0, 131, 61, 0.08), transparent 35%),
-              #e9f5ff;
+  /* Background is now on HTML to cover the full viewport context */
+  background: transparent;
   color: var(--ink);
   font-family: "Nunito", "Arial", "Helvetica", sans-serif;
   min-height: 100vh;
@@ -46,8 +47,10 @@ body {
   overflow-x: hidden;
 }
 
-/* OVERRIDE: Large padding (For Attendance/Notes / Has Buttons) 
-   Nav (74) + Safe Area + Button Height (50) + Gaps (20) = +70px */
+body:not(:has(.floating-actions)) {
+  --content-bottom-pad: calc(var(--nav-height) + var(--safe-area-bottom) + 20px);
+}
+
 body.has-fab .app-shell {
   --content-bottom-pad: calc(var(--nav-height) + var(--safe-area-bottom) + 70px);
 }
@@ -59,7 +62,10 @@ body.has-fab .app-shell {
   left: 0;
   width: 100%;
   height: 100%;
-  background: #e9f5ff; 
+  /* Match the HTML background so swipes look seamless */
+  background: radial-gradient(circle at 10% 10%, rgba(0, 123, 180, 0.08), transparent 35%),
+              radial-gradient(circle at 90% 0%, rgba(0, 131, 61, 0.08), transparent 35%),
+              #e9f5ff;
   z-index: 9999;
   display: none; 
   overflow: hidden; 
