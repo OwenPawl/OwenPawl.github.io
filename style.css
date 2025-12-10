@@ -42,7 +42,6 @@ body {
   justify-content: center;
   padding: 10px;
   padding-bottom: 0; 
-  overscroll-behavior-y: contain;
   overflow-x: hidden;
 }
 
