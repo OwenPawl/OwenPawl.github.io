@@ -7,10 +7,18 @@
   const handleTableLoading = () => {
     const container = document.getElementById("scheduleContainer");
     if (container) {
-      container.innerHTML = "<div style='padding:20px; text-align:center;'><b>Loading...</b></div>";
+      // If container is empty, show loading text. 
+      // If it has content (cached data), leave it fully visible as placeholder.
+      if (container.children.length === 0) {
+        container.innerHTML = "<div style='padding:20px; text-align:center;'><b>Loading...</b></div>";
+      }
     }
+    
     const locHeader = document.getElementById("locationHeader");
-    if (locHeader) locHeader.innerHTML = "";
+    // Only clear header if we are showing the loading text
+    if (locHeader && container && container.children.length === 0) {
+        locHeader.innerHTML = "";
+    }
   };
 
   const handleTableUpdate = (e) => {
@@ -65,6 +73,7 @@
       }
     }
     
+    // Just clear HTML, no opacity manipulation needed
     contentContainer.innerHTML = "";
 
     const dataRaw = scheduleData || sessionStorage.getItem("schedule");

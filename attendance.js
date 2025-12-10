@@ -10,7 +10,10 @@
   const handleAttendanceLoading = () => {
     const container = document.getElementById("attendanceContainer");
     if (container) {
-      container.innerHTML = "<div style='grid-column:1/-1; padding:20px; text-align:center;'><b>Loading...</b></div>";
+      // If empty, show loading text. If content exists (cached), do nothing (keep visible).
+      if (container.children.length === 0) {
+        container.innerHTML = "<div style='grid-column:1/-1; padding:20px; text-align:center;'><b>Loading...</b></div>";
+      }
     }
   };
 
@@ -66,7 +69,6 @@
   };
 
   // --- EXPORTED RENDER FUNCTION ---
-  // Now strictly requires container to be an Element
   window.renderAttendance = (container, scheduleData = null) => {
     if (!container) container = document.getElementById("app");
 

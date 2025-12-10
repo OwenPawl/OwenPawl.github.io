@@ -1,6 +1,14 @@
 document.getElementById("dateInput").addEventListener("change", (event) => {
-  console.log("dateInput changed, value:", event.target.value)
-  dateChanged(event.target.value);
+  // Save selected date AND the current "real" day it was modified
+  const selectedDate = event.target.value;
+  // Get current date in local time YYYY-MM-DD to compare against later
+  const todayStr = new Date().toLocaleDateString('en-CA');
+  
+  localStorage.setItem("persistent_date", selectedDate);
+  localStorage.setItem("persistent_date_saved_on", todayStr);
+
+  console.log("dateInput changed, value:", selectedDate);
+  dateChanged(selectedDate);
 });
 
 window.addEventListener("staffIdReady", () => {
@@ -49,7 +57,6 @@ async function getevents() {
 
     result = [
       ...Events.event_occurrences.flatMap(event => event.people.map(person => {
-        // --- CHANGE: Pre-check for excluded IDs ---
         const isExcluded = EXCLUDED_IDS.includes(person.id);
         return {
           id: person.id,
@@ -58,8 +65,7 @@ async function getevents() {
           start: event.start_at,
           end: event.end_at,
           name: person.name,
-          locationId: event.location_id, // Added locationId
-          // Set to EMPTY string immediately if excluded, else "..."
+          locationId: event.location_id,
           shortLevel: isExcluded ? "" : "...",
           isNew: "",
           age: isExcluded ? "" : "...",
@@ -79,7 +85,7 @@ async function getevents() {
         start: start_at,
         end: end_at,
         name: "Open",
-        locationId: location_id, // Added locationId
+        locationId: location_id,
         shortLevel: "",
         isNew: "",
         age: "",
@@ -190,7 +196,20 @@ function dateChanged(date) {
   getevents().catch(console.error);
 };
 
+// --- INITIALIZATION LOGIC ---
+const storedDate = localStorage.getItem("persistent_date");
+const savedOnDate = localStorage.getItem("persistent_date_saved_on");
+const todayStr = new Date().toLocaleDateString('en-CA');
+
+let initialDate = todayStr; // Default to today
+
+// Only restore if the saved date was set TODAY (or whatever logic "same day" implies)
+// If the day has changed since the user last picked a date, reset to today.
+if (storedDate && savedOnDate === todayStr) {
+    initialDate = storedDate;
+}
+
 if (!document.getElementById("dateInput").value) {
-  document.getElementById("dateInput").value = new Date().toLocaleDateString('en-CA');
+  document.getElementById("dateInput").value = initialDate;
   dateChanged(document.getElementById("dateInput").value);
 };
