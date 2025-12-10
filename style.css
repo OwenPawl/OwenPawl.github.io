@@ -42,6 +42,10 @@ body {
   display: flex;
   justify-content: center;
   padding: 10px;
+  
+  /* CRITICAL FIX: Add safe area to padding-top so content isn't hidden behind notch/clock */
+  padding-top: calc(10px + env(safe-area-inset-top)); 
+  
   padding-bottom: 0; 
   overscroll-behavior-y: contain;
   overflow-x: hidden;
@@ -70,6 +74,10 @@ body.has-fab .app-shell {
   display: none; 
   overflow: hidden; 
   padding: 10px;
+  
+  /* Ensure overlay respects safe area too */
+  padding-top: calc(10px + env(safe-area-inset-top));
+  
   box-sizing: border-box;
   flex-direction: column;
   align-items: center;
@@ -562,6 +570,10 @@ body.pull-refresh-ready .pull-indicator {
 @media (max-width: 520px) {
   body { 
     padding: 10px 6px;
+    
+    /* Keep safe area calc */
+    padding-top: calc(10px + env(safe-area-inset-top));
+    
     padding-bottom: 0;
   }
   .app-shell { gap: 10px; }
