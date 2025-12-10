@@ -1,9 +1,9 @@
 {
-  // --- STATE MANAGEMENT ---
   const visitState = new Map();
 
+  // SCOPED SELECTOR
   const getEl = (id, container) => {
-    if (container === document) return document.getElementById(id);
+    if (!container) container = document.getElementById("app");
     return container.querySelector(`#${id}`);
   };
 
@@ -15,7 +15,7 @@
   };
 
   const handleScheduleUpdate = (e) => {
-    window.renderAttendance(document, e.detail);
+    window.renderAttendance(document.getElementById("app"), e.detail);
   };
 
   const handleInteraction = (e) => {
@@ -31,7 +31,6 @@
     }
   };
 
-  // --- RE-ATTACH LISTENERS FUNCTION ---
   const attachListeners = () => {
     if (!window.attendanceListenersAttached) {
         const dateInput = document.getElementById("dateInput");
@@ -67,9 +66,11 @@
   };
 
   // --- EXPORTED RENDER FUNCTION ---
-  window.renderAttendance = (container = document, scheduleData = null) => {
-    // Ensuring listeners are attached when rendering the main view
-    if (container === document) {
+  // Now strictly requires container to be an Element
+  window.renderAttendance = (container, scheduleData = null) => {
+    if (!container) container = document.getElementById("app");
+
+    if (container.id === "app") {
         attachListeners();
     }
 
@@ -89,7 +90,7 @@
     
     contentContainer.innerHTML = "";
     
-    if (container === document) {
+    if (container.id === "app") {
         visitState.clear();
     }
 
@@ -158,7 +159,7 @@
           const isChecked = (state !== 'late_canceled' && state !== 'noshowed');
           const eventTime = vidToTime.get(vid.toString());
 
-          if (container === document) {
+          if (container.id === "app") {
             visitState.set(vid.toString(), {
               vid: vid.toString(),
               originalState: state,
@@ -177,7 +178,7 @@
           input.id = vid;
           input.checked = isChecked;
           
-          if (container !== document) input.disabled = true;
+          if (container.id !== "app") input.disabled = true;
 
           label.appendChild(input);
           checkinStack.appendChild(label);
@@ -192,7 +193,7 @@
         notesBtn.dataset.role = "note";
         notesBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="#ffffff" viewBox="0 0 256 256"><path d="M216,40H176V24a8,8,0,0,0-16,0V40H96V24a8,8,0,0,0-16,0V40H40A16,16,0,0,0,24,56V200a16,16,0,0,0,16,16H216a16,16,0,0,0,16-16V56A16,16,0,0,0,216,40Zm0,160H40V56H80V72a8,8,0,0,0,16,0V56h64V72a8,8,0,0,0,16,0V56h40ZM96,120h64a8,8,0,0,1,0,16H96a8,8,0,0,1,0-16Zm64,32H96a8,8,0,0,0,0,16h64a8,8,0,0,0,0-16Z"></path></svg>`;
         
-        if (container === document) {
+        if (container.id === "app") {
             notesBtn.onclick = () => {
               sessionStorage.setItem("noteContext", JSON.stringify({
                 id: item.id,
@@ -208,7 +209,7 @@
       });
     });
     
-    if (container === document) {
+    if (container.id === "app") {
         attachSubmitLogic();
     }
   };

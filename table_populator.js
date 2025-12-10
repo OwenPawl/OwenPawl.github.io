@@ -1,6 +1,6 @@
 {
   const getEl = (id, container) => {
-    if (container === document) return document.getElementById(id);
+    if (!container) container = document.getElementById("app");
     return container.querySelector(`#${id}`);
   };
 
@@ -14,16 +14,27 @@
   };
 
   const handleTableUpdate = (e) => {
-    window.renderSchedule(document, e.detail);
+    window.renderSchedule(document.getElementById("app"), e.detail);
   };
 
-  if (!window.scheduleListenersAttached) {
-    const dateInput = document.getElementById("dateInput");
-    if (dateInput) dateInput.addEventListener("change", handleTableLoading);
-    window.addEventListener("scheduleUpdated", handleTableUpdate);
-    window.addEventListener("scheduleLoading", handleTableLoading);
-    window.scheduleListenersAttached = true;
-  }
+  const attachListeners = () => {
+    if (!window.scheduleListenersAttached) {
+        const dateInput = document.getElementById("dateInput");
+        
+        if (dateInput) {
+            dateInput.removeEventListener("change", handleTableLoading); 
+            dateInput.addEventListener("change", handleTableLoading);
+        }
+        
+        window.removeEventListener("scheduleUpdated", handleTableUpdate);
+        window.removeEventListener("scheduleLoading", handleTableLoading);
+        
+        window.addEventListener("scheduleUpdated", handleTableUpdate);
+        window.addEventListener("scheduleLoading", handleTableLoading);
+        
+        window.scheduleListenersAttached = true;
+    }
+  };
 
   window.cleanupView = () => {
     const dateInput = document.getElementById("dateInput");
@@ -33,7 +44,13 @@
     window.scheduleListenersAttached = false;
   };
 
-  window.renderSchedule = (container = document, scheduleData = null) => {
+  window.renderSchedule = (container, scheduleData = null) => {
+    if (!container) container = document.getElementById("app");
+
+    if (container.id === "app") {
+        attachListeners();
+    }
+
     let contentContainer = getEl("scheduleContainer", container);
     
     if (!contentContainer) {
@@ -172,6 +189,5 @@
     });
   };
   
-  // Initial Render on Load
-  window.renderSchedule(document);
+  window.renderSchedule(document.getElementById("app"));
 }

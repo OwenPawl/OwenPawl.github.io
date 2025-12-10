@@ -2,9 +2,13 @@
   window.cleanupView = () => {};
 
   // --- REFACTORED RENDER FUNCTION ---
-  window.renderNotes = (container = document) => {
-    // Helper to find elements in the correct container
-    const getEl = (id) => container === document ? document.getElementById(id) : container.querySelector(`#${id}`);
+  // IMPORTANT: We now pass the exact container element, not document
+  window.renderNotes = (container) => {
+    // Fallback if container is missing (shouldn't happen with new nav logic)
+    if (!container) container = document.getElementById("app");
+
+    // SCOPED SELECTOR: Only find elements inside this specific container
+    const getEl = (id) => container.querySelector(`#${id}`);
 
     const noteData = JSON.parse(sessionStorage.getItem("noteContext") || "{}");
     const { id, name, fullLevel, age } = noteData;
@@ -22,9 +26,9 @@
       return str ? str.toLowerCase().trim() : "";
     }
 
-    // Safety: If no ID (direct page load), redirect to attendance
     if (!id) {
-      if (container === document) navigate("attendance");
+      // If no ID and we are in the main app, redirect
+      if (container.id === "app") navigate("attendance");
       return;
     }
 
@@ -51,17 +55,18 @@
       if (currentIndex !== -1 && currentIndex < uniqueStudents.length - 1) {
         nextBtn.style.display = "inline-flex";
         
-        // Remove old listeners by cloning
-        const newBtn = nextBtn.cloneNode(true);
-        nextBtn.parentNode.replaceChild(newBtn, nextBtn);
+        // Simplified Logic: Use onclick to override previous listeners
+        // This avoids DOM thrashing with cloneNode which caused issues
         
-        // Only add listener if active document (interaction allowed)
-        if (container === document) {
-            newBtn.addEventListener("click", () => {
+        // Only active in main app
+        if (container.id === "app") {
+            nextBtn.onclick = () => {
               const nextStudent = uniqueStudents[currentIndex + 1];
               sessionStorage.setItem("noteContext", JSON.stringify(nextStudent));
               navigate("notes");
-            });
+            };
+        } else {
+            nextBtn.onclick = null; // Disable in preview
         }
       } else {
         nextBtn.style.display = "none";
@@ -71,132 +76,132 @@
     // --- LEVEL DROPDOWN LOGIC ---
     const levelSelect = getEl("levelSelect");
     
-    // Ensure element exists before using it
     if (levelSelect) {
         levelSelect.innerHTML = "";
         
-        const skillKeys = Object.keys(SKILLS);
-        
-        let currentDisplayLevel = fullLevel;
-        let isLocked = false;
-        let lockedText = "";
-        let lockedSkillsKey = "";
+        // Check for SKILLS global definition
+        if (typeof SKILLS !== 'undefined') {
+            const skillKeys = Object.keys(SKILLS);
+            
+            let currentDisplayLevel = fullLevel;
+            let isLocked = false;
+            let lockedText = "";
+            let lockedSkillsKey = "";
 
-        if (age < 2) {
-          isLocked = true;
-          lockedText = "Baby (0-2 years)";
-          lockedSkillsKey = "Baby (0-2 years)";
-        } else if (age < 4) {
-          isLocked = true;
-          lockedText = "Tots (2-4 years)";
-          lockedSkillsKey = "Tots (2-4 years)";
-        } else {
-          isLocked = false;
-          const dropdownOptions = skillKeys.filter(k => 
-            !k.toLowerCase().includes("baby") && 
-            !k.toLowerCase().includes("tots")
-          );
+            if (age < 2) {
+              isLocked = true;
+              lockedText = "Baby (0-2 years)";
+              lockedSkillsKey = "Baby (0-2 years)";
+            } else if (age < 4) {
+              isLocked = true;
+              lockedText = "Tots (2-4 years)";
+              lockedSkillsKey = "Tots (2-4 years)";
+            } else {
+              isLocked = false;
+              const dropdownOptions = skillKeys.filter(k => 
+                !k.toLowerCase().includes("baby") && 
+                !k.toLowerCase().includes("tots")
+              );
 
-          dropdownOptions.forEach(lvl => {
-            const opt = document.createElement("option");
-            opt.value = lvl;
-            opt.textContent = lvl;
-            levelSelect.appendChild(opt);
-          });
+              dropdownOptions.forEach(lvl => {
+                const opt = document.createElement("option");
+                opt.value = lvl;
+                opt.textContent = lvl;
+                levelSelect.appendChild(opt);
+              });
 
-          const target = normalize(fullLevel);
-          let match = dropdownOptions.find(l => normalize(l) === target);
+              const target = normalize(fullLevel);
+              let match = dropdownOptions.find(l => normalize(l) === target);
 
-          if (match) {
-            levelSelect.value = match;
-          } else {
-            const defaultLvl = dropdownOptions.find(l => l.toLowerCase().includes("level 1")) || dropdownOptions[0];
-            levelSelect.value = defaultLvl;
-          }
-        }
+              if (match) {
+                levelSelect.value = match;
+              } else {
+                const defaultLvl = dropdownOptions.find(l => l.toLowerCase().includes("level 1")) || dropdownOptions[0];
+                levelSelect.value = defaultLvl;
+              }
+            }
 
-        const staticLabelId = "staticLevelLabel";
-        // Check if static label already exists inside this specific container
-        let staticLabel = container === document 
-            ? document.getElementById(staticLabelId) 
-            : container.querySelector(`#${staticLabelId}`);
+            const staticLabelId = "staticLevelLabel";
+            // Check inside container scope for label
+            let staticLabel = container.querySelector(`#${staticLabelId}`);
 
-        if (isLocked) {
-          levelSelect.style.display = "none";
-          if (!staticLabel) {
-            staticLabel = document.createElement("div");
-            staticLabel.id = staticLabelId;
-            staticLabel.className = "pill"; 
-            staticLabel.style.marginBottom = "4px";
-            levelSelect.parentNode.insertBefore(staticLabel, levelSelect);
-          }
-          staticLabel.textContent = lockedText;
-          staticLabel.style.display = "inline-flex";
-          currentDisplayLevel = lockedSkillsKey;
-        } else {
-          levelSelect.style.display = "block";
-          if (staticLabel) staticLabel.style.display = "none";
-          currentDisplayLevel = levelSelect.value;
-        }
+            if (isLocked) {
+              levelSelect.style.display = "none";
+              if (!staticLabel) {
+                staticLabel = document.createElement("div");
+                staticLabel.id = staticLabelId;
+                staticLabel.className = "pill"; 
+                staticLabel.style.marginBottom = "4px";
+                levelSelect.parentNode.insertBefore(staticLabel, levelSelect);
+              }
+              staticLabel.textContent = lockedText;
+              staticLabel.style.display = "inline-flex";
+              currentDisplayLevel = lockedSkillsKey;
+            } else {
+              levelSelect.style.display = "block";
+              if (staticLabel) staticLabel.style.display = "none";
+              currentDisplayLevel = levelSelect.value;
+            }
 
-        const checkContainer = getEl("checklistContainer");
+            const checkContainer = getEl("checklistContainer");
 
-        // Defined inside scope to capture 'checkContainer'
-        function renderChecklist(levelName) {
-          if (!checkContainer) return;
-          const keyToUse = isLocked ? lockedSkillsKey : levelName;
-          const skills = SKILLS[keyToUse];
+            function renderChecklist(levelName) {
+              if (!checkContainer) return;
+              const keyToUse = isLocked ? lockedSkillsKey : levelName;
+              const skills = SKILLS[keyToUse];
 
-          if (!skills || skills.length === 0) {
-            checkContainer.innerHTML = "<p>No skills found for this level.</p>";
-          } else {
-            let html = `<div class="checklist-container">`;
-            html += `
-              <div class="checklist-header-row">
-                <div class="col-header">Skill</div>
-                <div class="col-header center">Worked</div>
-                <div class="col-header center">Next</div>
-              </div>
-            `;
-            skills.forEach((skill) => {
-              const safeSkill = skill.replace(/"/g, '&quot;');
-              html += `
-                <div class="checklist-row">
-                  <div class="skill-label">${skill}</div>
-                  <div class="skill-check">
-                    <input type="checkbox" data-skill="${safeSkill}" class="custom-checkbox worked-on" ${container !== document ? 'disabled' : ''}>
+              if (!skills || skills.length === 0) {
+                checkContainer.innerHTML = "<p>No skills found for this level.</p>";
+              } else {
+                let html = `<div class="checklist-container">`;
+                html += `
+                  <div class="checklist-header-row">
+                    <div class="col-header">Skill</div>
+                    <div class="col-header center">Worked</div>
+                    <div class="col-header center">Next</div>
                   </div>
-                  <div class="skill-check">
-                    <input type="checkbox" data-skill="${safeSkill}" class="custom-checkbox next-time" ${container !== document ? 'disabled' : ''}>
-                  </div>
-                </div>
-              `;
-            });
-            html += "</div>";
-            checkContainer.innerHTML = html;
-          }
-        }
+                `;
+                skills.forEach((skill) => {
+                  const safeSkill = skill.replace(/"/g, '&quot;');
+                  html += `
+                    <div class="checklist-row">
+                      <div class="skill-label">${skill}</div>
+                      <div class="skill-check">
+                        <input type="checkbox" data-skill="${safeSkill}" class="custom-checkbox worked-on" ${container.id !== "app" ? 'disabled' : ''}>
+                      </div>
+                      <div class="skill-check">
+                        <input type="checkbox" data-skill="${safeSkill}" class="custom-checkbox next-time" ${container.id !== "app" ? 'disabled' : ''}>
+                      </div>
+                    </div>
+                  `;
+                });
+                html += "</div>";
+                checkContainer.innerHTML = html;
+              }
+            }
 
-        renderChecklist(currentDisplayLevel);
+            renderChecklist(currentDisplayLevel);
 
-        if (!isLocked && container === document) {
-          levelSelect.addEventListener("change", () => {
-            renderChecklist(levelSelect.value);
-          });
+            if (!isLocked && container.id === "app") {
+              // use onclick to avoid stacking listeners if re-run
+              levelSelect.onchange = () => {
+                renderChecklist(levelSelect.value);
+              };
+            }
         }
     }
 
     const openPikeBtn = getEl("openPike13");
-    if (openPikeBtn && container === document) {
-        openPikeBtn.addEventListener("click", () => {
+    if (openPikeBtn && container.id === "app") {
+        openPikeBtn.onclick = () => {
             window.location.href = `https://mcdonaldswimschool.pike13.com/people/${id}/notes`;
-        });
+        };
     }
 
     // --- SUBMIT HANDLER ---
     const submitBtn = getEl("submitNote");
-    if (submitBtn && container === document) {
-        submitBtn.addEventListener("click", async () => {
+    if (submitBtn && container.id === "app") {
+        submitBtn.onclick = async () => {
             submitBtn.disabled = true;
             submitBtn.textContent = "Submitting...";
 
@@ -285,12 +290,11 @@
               submitBtn.disabled = false;
               submitBtn.textContent = "Submit";
             }
-        });
+        };
     }
 
     // --- PRE-FILL CHECKBOXES FROM PREVIOUS NOTES ---
-    // Only run this for the active view to avoid unnecessary API calls for background slides
-    if (container === document) {
+    if (container.id === "app") {
         (async () => {
           try {
             const data = await pikeFetch(`people/${id}/notes`);
@@ -346,5 +350,5 @@
   };
 
   // Initial Render call
-  window.renderNotes(document);
+  window.renderNotes(document.getElementById("app"));
 }

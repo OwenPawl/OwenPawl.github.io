@@ -1,7 +1,7 @@
 const routes = {
   schedule: { file: "schedule.html", script: "table_populator.js", renderFn: "renderSchedule" },
   attendance: { file: "attendance.html", script: "attendance.js", renderFn: "renderAttendance" },
-  notes: { file: "notes.html", script: "notes.js" }
+  notes: { file: "notes.html", script: "notes.js", renderFn: "renderNotes" }
 };
 
 const routeByFile = Object.entries(routes).reduce((map, [key, value]) => {
@@ -66,7 +66,7 @@ async function load(file, scriptFile, targetElement = document.getElementById("a
   targetElement.innerHTML = html;
 
   if (targetElement.id === "app") {
-    // Scroll to top when navigation finishes
+    // Scroll to top when loading new main view
     window.scrollTo(0, 0);
     
     setActiveNav(routeByFile[file]);
@@ -78,11 +78,11 @@ async function load(file, scriptFile, targetElement = document.getElementById("a
 
     const route = routes[routeKey];
     if (route && route.renderFn && window[route.renderFn]) {
-        window[route.renderFn](document);
+        // CRITICAL FIX: Pass the element, not 'document', to enforce scoping
+        window[route.renderFn](targetElement);
     } else if (routeKey === 'notes') {
         const oldScript = document.querySelector(`script[src="${scriptFile}"]`);
         if (oldScript) oldScript.remove();
-        
         const script = document.createElement("script");
         script.src = scriptFile;
         document.body.appendChild(script);
@@ -123,7 +123,7 @@ class SwipeHandler {
     this.isSwiping = false;
     this.isScrolling = false;
     this.width = 0;
-    this.initialScroll = 0; // Capture scroll position at start
+    this.initialScroll = 0;
     
     this.prevEl = document.createElement('div');
     this.prevEl.className = 'swipe-overlay view-prev';
@@ -144,17 +144,22 @@ class SwipeHandler {
   cloneCurrentPage(targetEl) {
     const shell = document.querySelector('.app-shell').cloneNode(true);
     const nav = document.querySelector('.bottom-nav').cloneNode(true);
-    const float = document.querySelector('.floating-actions');
     
-    // VISUAL FIX: Apply negative translate to the shell to simulate current scroll position
-    // This makes the overlay content start exactly where the user was looking
+    let float = shell.querySelector('.floating-actions');
+    if (float) {
+        float.remove();
+    } else {
+        const domFloat = document.querySelector('.floating-actions');
+        if (domFloat) float = domFloat.cloneNode(true);
+    }
+    
     shell.style.transform = `translateY(-${this.initialScroll}px)`;
     shell.style.marginBottom = "80px"; 
 
     targetEl.innerHTML = "";
     targetEl.appendChild(shell);
     targetEl.appendChild(nav);
-    if (float) targetEl.appendChild(float.cloneNode(true));
+    if (float) targetEl.appendChild(float);
   }
 
   async buildNextPage(routeKey, targetEl) {
@@ -162,7 +167,6 @@ class SwipeHandler {
     if (!route) return;
 
     const shell = document.querySelector('.app-shell').cloneNode(true);
-    // Remove transform from new pages so they start at top
     shell.style.transform = ''; 
     const nav = document.querySelector('.bottom-nav').cloneNode(true);
     
@@ -182,10 +186,16 @@ class SwipeHandler {
 
     const appContent = shell.querySelector('#app');
     appContent.innerHTML = html;
+
+    const float = shell.querySelector('.floating-actions');
+    if (float) {
+        float.remove();
+    }
     
     targetEl.innerHTML = "";
     targetEl.appendChild(shell);
     targetEl.appendChild(nav);
+    if (float) targetEl.appendChild(float);
 
     await ensureScriptLoaded(routeKey);
     
@@ -205,7 +215,7 @@ class SwipeHandler {
     this.startY = e.touches[0].clientY;
     this.startTime = Date.now();
     this.width = window.innerWidth;
-    this.initialScroll = window.scrollY; // Capture current scroll
+    this.initialScroll = window.scrollY;
     this.isSwiping = false;
     this.isScrolling = false;
     
@@ -229,6 +239,15 @@ class SwipeHandler {
     const y = e.touches[0].clientY;
     const dx = x - this.startX;
     const dy = y - this.startY;
+
+    if (!this.isSwiping && !this.isScrolling) {
+        if (Math.abs(dx) > Math.abs(dy)) {
+            if ((dx > 0 && !this.prevRoute) || (dx < 0 && !this.nextRoute)) {
+                if (e.cancelable) e.preventDefault();
+                return;
+            }
+        }
+    }
 
     if (!this.isSwiping) {
         const dist = Math.sqrt(dx*dx + dy*dy);
