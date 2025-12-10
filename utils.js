@@ -11,7 +11,8 @@ const EXCLUDED_IDS = [11485475, 11559838, 13602611, 13167161, ""];
   const NAV_HEIGHT = 74; 
 
   const updateNav = () => {
-    const scrollY = window.scrollY;
+    // FIX: Clamp scrollY to 0 to prevent negative values (iOS bounce) from messing up calculation
+    const scrollY = Math.max(0, window.scrollY);
     const deltaY = scrollY - lastScrollY;
     const scrollHeight = document.body.scrollHeight;
     const innerHeight = window.innerHeight;

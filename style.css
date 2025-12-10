@@ -19,6 +19,11 @@
 
 * { box-sizing: border-box; }
 
+html, body {
+  /* CRITICAL FIX: Disables native bounce/rubber-banding in BOTH directions */
+  overscroll-behavior: none;
+}
+
 body {
   margin: 0;
   background: radial-gradient(circle at 10% 10%, rgba(0, 123, 180, 0.08), transparent 35%),
@@ -31,9 +36,9 @@ body {
   justify-content: center;
   padding: 10px;
   padding-bottom: var(--content-bottom-pad);
+  /* Ensure scroll behavior is contained here */
   overscroll-behavior-y: contain;
   overflow-x: hidden;
-  touch-action: pan-y; /* Let browser handle vertical, we handle horizontal */
 }
 
 body:not(:has(.floating-actions)) {
@@ -57,12 +62,10 @@ body:not(:has(.floating-actions)) {
   align-items: center;
 }
 
-/* CRITICAL FIX: Inside a swipe overlay, floating actions must be absolute relative to the card/overlay 
-   so they move WITH the slide and don't snap to the global viewport */
 .swipe-overlay .floating-actions {
   position: absolute !important;
   bottom: calc(var(--nav-height) + var(--safe-area-bottom) + 10px) !important;
-  transform: none !important; /* Disable the scroll physics transform during swipe */
+  transform: none !important; 
   left: 50%;
   transform: translateX(-50%) !important;
 }
@@ -90,6 +93,7 @@ body.swiping-active .view-prev {
 .swipe-overlay .app-shell {
   width: min(960px, 100%);
   height: auto;
+  will-change: transform; 
 }
 
 /* --------------------------- */
