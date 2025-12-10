@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Lesson Manager</title>
+  <link rel="apple-touch-icon" href="Swimming Person Icon.PNG">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <link rel="stylesheet" href="style.css">
+</head>
+  <script src="initialize_access.js"></script>
+<body>
+  <div class="app-shell">
+    <header class="top-bar">
+      <div class="date-controls">
+        <button class="icon-btn" id="prevDate" aria-label="Previous day">&#8592;</button>
+        <input class="date-input" id="dateInput" type="date">
+        <button class="icon-btn" id="nextDate" aria-label="Next day">&#8594;</button>
+      </div>
+    </header>
+    <main id="app" class="content-card"><h1 class="muted">Loading...</h1></main>
+  </div>
+  <div class="pull-indicator" aria-hidden="true">Release to refresh</div>
+  <nav class="bottom-nav" aria-label="Primary">
+    <button class="nav-btn" data-target="schedule">
+      <span class="icon" aria-hidden="true"><i class="ph-fill ph-calendar-check"></i></span>
+      <span>Schedule</span>
+    </button>
+    <button class="nav-btn" data-target="attendance">
+      <span class="icon" aria-hidden="true"><i class="ph-fill ph-clipboard-check"></i></span>
+      <span>Attendance</span>
+    </button>
+  </nav>
+  <script defer>
+    function changeDate(days) {
+      const dateField = document.getElementById("dateInput");
+      if (!dateField.value) {
+        dateField.value = new Date().toISOString().split("T")[0];
+      }
+      dateField.value = new Date(Date.parse(dateField.value) + days * 864e5)
+        .toISOString()
+        .split("T")[0];
+      dateField.dispatchEvent(new Event("change"));
+    }
+    document.getElementById("prevDate").addEventListener("click", () => changeDate(-1));
+    document.getElementById("nextDate").addEventListener("click", () => changeDate(1));
+
+    // Lightweight pull-to-refresh for touch devices
+    let pullStartY = null;
+    let pullArmed = false;
+
+    const pullHandler = {
+      start(e) {
+        if (window.scrollY === 0) {
+          pullStartY = e.touches[0].clientY;
+          pullArmed = true;
+        }
+      },
+      move(e) {
+        if (!pullArmed || pullStartY === null) return;
+        const delta = e.touches[0].clientY - pullStartY;
+        if (delta > 80) {
+          document.body.classList.add("pull-refresh-ready");
+        } else {
+          document.body.classList.remove("pull-refresh-ready");
+        }
+      },
+      end() {
+        if (document.body.classList.contains("pull-refresh-ready")) {
+          location.reload();
+        }
+        document.body.classList.remove("pull-refresh-ready");
+        pullStartY = null;
+        pullArmed = false;
+      }
+    };
+
+    window.addEventListener("touchstart", pullHandler.start, { passive: true });
+    window.addEventListener("touchmove", pullHandler.move, { passive: true });
+    window.addEventListener("touchend", pullHandler.end, { passive: true });
+  </script>
+  <script src="skills.js" defer></script>
+  <script src="utils.js" defer></script>
+  <script src="getdata.js" defer></script>
+  <script src="navigation.js" defer></script>
+</body>
+</html>
